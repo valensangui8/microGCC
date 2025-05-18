@@ -15,59 +15,59 @@
  * find you, and I will kill you (Bryan Mills; "Taken", 2008).
  */
 const int main(const int count, const char ** arguments) {
-	Logger * logger = createLogger("EntryPoint");
-	initializeFlexActionsModule();
-	initializeBisonActionsModule();
-	initializeSyntacticAnalyzerModule();
-	initializeAbstractSyntaxTreeModule();
-	initializeCalculatorModule();
-	initializeGeneratorModule();
+    Logger * logger = createLogger("EntryPoint");
+    initializeFlexActionsModule();
+    initializeBisonActionsModule();
+    initializeSyntacticAnalyzerModule();
+    initializeAbstractSyntaxTreeModule();
+//	initializeCalculatorModule();
+//	initializeGeneratorModule();
 
-	// Logs the arguments of the application.
-	for (int k = 0; k < count; ++k) {
-		logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
-	}
+    // Logs the arguments of the application.
+    for (int k = 0; k < count; ++k) {
+        logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
+    }
 
-	// Begin compilation process.
-	CompilerState compilerState = {
-		.abstractSyntaxtTree = NULL,
-		.succeed = false,
-		.value = 0
-	};
-	const SyntacticAnalysisStatus syntacticAnalysisStatus = parse(&compilerState);
-	CompilationStatus compilationStatus = SUCCEED;
-	if (syntacticAnalysisStatus == ACCEPT) {
-		// ----------------------------------------------------------------------------------------
-		// Beginning of the Backend... ------------------------------------------------------------
-		logDebugging(logger, "Computing expression value...");
-		Program * program = compilerState.abstractSyntaxtTree;
-		ComputationResult computationResult = computeExpression(program->expression);
-		if (computationResult.succeed) {
-			compilerState.value = computationResult.value;
-			generate(&compilerState);
-		}
-		else {
-			logError(logger, "The computation phase rejects the input program.");
-			compilationStatus = FAILED;
-		}
-		// ...end of the Backend. -----------------------------------------------------------------
-		// ----------------------------------------------------------------------------------------
-		logDebugging(logger, "Releasing AST resources...");
-		releaseProgram(program);
-	}
-	else {
-		logError(logger, "The syntactic-analysis phase rejects the input program.");
-		compilationStatus = FAILED;
-	}
+    // Begin compilation process.
+    CompilerState compilerState = {
+            .abstractSyntaxtTree = NULL,
+            .succeed = false,
+            .value = 0
+    };
+    const SyntacticAnalysisStatus syntacticAnalysisStatus = parse(&compilerState);
+    CompilationStatus compilationStatus = SUCCEED;
+    if (syntacticAnalysisStatus == ACCEPT) {
+        // ----------------------------------------------------------------------------------------
+        // Beginning of the Backend... ------------------------------------------------------------
+        /*logDebugging(logger, "Computing expression value...");
+        Program * program = compilerState.abstractSyntaxtTree;
+        ComputationResult computationResult = computeExpression(program->expression);
+        if (computationResult.succeed) {
+            compilerState.value = computationResult.value;
+            generate(&compilerState);
+        }
+        else {
+            logError(logger, "The computation phase rejects the input program.");
+            compilationStatus = FAILED;
+        }
+        // ...end of the Backend. -----------------------------------------------------------------
+        // ----------------------------------------------------------------------------------------
+        logDebugging(logger, "Releasing AST resources...");
+        releaseProgram(program);*/
+    }
+    else {
+        logError(logger, "The syntactic-analysis phase rejects the input program.");
+        compilationStatus = FAILED;
+    }
 
-	logDebugging(logger, "Releasing modules resources...");
-	shutdownGeneratorModule();
-	shutdownCalculatorModule();
-	shutdownAbstractSyntaxTreeModule();
-	shutdownSyntacticAnalyzerModule();
-	shutdownBisonActionsModule();
-	shutdownFlexActionsModule();
-	logDebugging(logger, "Compilation is done.");
-	destroyLogger(logger);
-	return compilationStatus;
+    logDebugging(logger, "Releasing modules resources...");
+    //shutdownGeneratorModule();
+    //shutdownCalculatorModule();
+    shutdownAbstractSyntaxTreeModule();
+    shutdownSyntacticAnalyzerModule();
+    shutdownBisonActionsModule();
+    shutdownFlexActionsModule();
+    logDebugging(logger, "Compilation is done.");
+    destroyLogger(logger);
+    return compilationStatus;
 }
