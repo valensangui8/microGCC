@@ -112,7 +112,7 @@ DeclarationSuffix* VariableDeclarationSuffixSemanticAction(VariableSuffix* varia
     _logSyntacticAnalyzerAction(__FUNCTION__);
     DeclarationSuffix* suffix = calloc(1, sizeof(DeclarationSuffix));
     suffix->variableSuffix = variableSuffix;
-    suffix->type = VARIABLE_SUFFIX_DECLARATION;
+    suffix->type = VARIABLE_SUFFIX_ARRAY;
     return suffix;
 }
 

@@ -10,20 +10,76 @@ void initializeAbstractSyntaxTreeModule();
 /** Shutdown module's internal state. */
 void shutdownAbstractSyntaxTreeModule();
 
-/**
- * This typedefs allows self-referencing types.
- */
+typedef enum {
+    TYPE_INT,
+    TYPE_CHAR
+} DataType;
 
-typedef enum DataType DataType;
-typedef enum DeclarationType DeclarationType;
-typedef enum DeclarationSuffixType DeclarationSuffixType;
-typedef enum ExpressionType ExpressionType;
-typedef enum IdentifierSuffixType IdentifierSuffixType;
-typedef enum ParameterArrayType ParameterArrayType;
-typedef enum ProgramType ProgramType;
-typedef enum StatementType StatementType;
-typedef enum StatementType StatementType;
-typedef enum VariableSuffixType VariableSuffixType;
+typedef enum {
+    DECLARATION_REGULAR,
+    DECLARATION_EXTERN
+} DeclarationType;
+
+typedef enum {
+    DECLARATION_SUFFIX_VARIABLE,
+    DECLARATION_SUFFIX_FUNCTION
+} DeclarationSuffixType;
+
+typedef enum {
+    EXPRESSION_ASSIGNMENT,
+    EXPRESSION_OR,
+    EXPRESSION_AND,
+    EXPRESSION_EQUAL,
+    EXPRESSION_NOT_EQUAL,
+    EXPRESSION_LESS,
+    EXPRESSION_GREATER,
+    EXPRESSION_LESS_EQUAL,
+    EXPRESSION_GREATER_EQUAL,
+    EXPRESSION_ADDITION,
+    EXPRESSION_SUBTRACTION,
+    EXPRESSION_MULTIPLICATION,
+    EXPRESSION_DIVISION,
+    EXPRESSION_MODULO,
+    EXPRESSION_NOT,
+    EXPRESSION_IDENTIFIER,
+    EXPRESSION_CONSTANT,
+    EXPRESSION_PARENTHESIS,
+    EXPRESSION_ARRAY_ACCESS,
+    EXPRESSION_FUNCTION_CALL
+} ExpressionType;
+
+typedef enum {
+    IDENTIFIER_SUFFIX_NONE,
+    IDENTIFIER_SUFFIX_FUNCTION_CALL,
+    IDENTIFIER_SUFFIX_ARRAY_ACCESS
+} IdentifierSuffixType;
+
+typedef enum {
+    PARAMETER_ARRAY_NONE,
+    PARAMETER_ARRAY_BRACKETS
+} ParameterArrayType;
+
+typedef enum {
+    PROGRAM_EMPTY,
+    PROGRAM_DECLARATIONS
+} ProgramType;
+
+typedef enum {
+    STATEMENT_DECLARATION,
+    STATEMENT_IF,
+    STATEMENT_WHILE,
+    STATEMENT_FOR,
+    STATEMENT_RETURN,
+    STATEMENT_EXPRESSION,
+    STATEMENT_BLOCK,
+    STATEMENT_EMPTY
+} StatementType;
+
+typedef enum {
+    VARIABLE_SUFFIX_NONE,
+    VARIABLE_SUFFIX_ASSIGNMENT,
+    VARIABLE_SUFFIX_ARRAY
+} VariableSuffixType;
 
 typedef struct Block Block;
 typedef struct Constant Constant;
@@ -51,81 +107,6 @@ typedef struct StatementReturn StatementReturn;
 typedef struct StatementWhile StatementWhile;
 typedef struct VariableSuffix VariableSuffix;
 
-/**
- * Node types for the Abstract Syntax Tree (AST).
- */
-
-enum DataType {
-    TYPE_INT,
-    TYPE_CHAR
-};
-
-enum DeclarationType {
-    DECLARATION_REGULAR,
-    DECLARATION_EXTERN
-};
-
-enum DeclarationSuffixType {
-    VARIABLE_SUFFIX_DECLARATION,
-    DECLARATION_SUFFIX_FUNCTION
-};
-
-enum ExpressionType {
-    EXPRESSION_ASSIGNMENT,
-    EXPRESSION_OR,
-    EXPRESSION_AND,
-    EXPRESSION_EQUAL,
-    EXPRESSION_NOT_EQUAL,
-    EXPRESSION_LESS,
-    EXPRESSION_GREATER,
-    EXPRESSION_LESS_EQUAL,
-    EXPRESSION_GREATER_EQUAL,
-    EXPRESSION_ADDITION,
-    EXPRESSION_SUBTRACTION,
-    EXPRESSION_MULTIPLICATION,
-    EXPRESSION_DIVISION,
-    EXPRESSION_MODULO,
-    EXPRESSION_NOT,
-    EXPRESSION_IDENTIFIER,
-    EXPRESSION_CONSTANT,
-    EXPRESSION_PARENTHESIS,
-    EXPRESSION_ARRAY_ACCESS,
-    EXPRESSION_FUNCTION_CALL
-};
-
-enum IdentifierSuffixType {
-    IDENTIFIER_SUFFIX_NONE,
-    IDENTIFIER_SUFFIX_FUNCTION_CALL,
-    IDENTIFIER_SUFFIX_ARRAY_ACCESS
-};
-
-enum ParameterArrayType {
-    PARAMETER_ARRAY_NONE,
-    PARAMETER_ARRAY_BRACKETS
-};
-
-enum ProgramType {
-    PROGRAM_EMPTY,
-    PROGRAM_DECLARATIONS
-};
-
-enum StatementType {
-    STATEMENT_DECLARATION,
-    STATEMENT_IF,
-    STATEMENT_WHILE,
-    STATEMENT_FOR,
-    STATEMENT_RETURN,
-    STATEMENT_EXPRESSION,
-    STATEMENT_BLOCK,
-    STATEMENT_EMPTY
-};
-
-enum VariableSuffixType {
-    VARIABLE_SUFFIX_NONE,
-    VARIABLE_SUFFIX_ASSIGNMENT,
-    VARIABLE_SUFFIX_ARRAY
-};
-
 struct ConstantInteger {
     int value;
 };
@@ -135,11 +116,11 @@ struct ConstantCharacter {
 };
 
 struct Constant {
+    int type;
     union {
         ConstantInteger* integer;
         ConstantCharacter* character;
     };
-    int type; // 0 for integer, 1 for character
 };
 
 struct Identifier {
@@ -147,26 +128,15 @@ struct Identifier {
 };
 
 struct Expression {
+    ExpressionType type;
     union {
-        struct {
-            Expression* leftExpression;
-            Expression* rightExpression;
-        };
-        struct {
-            Expression* singleExpression;
-        };
+        struct { Expression* leftExpression; Expression* rightExpression; };
+        Expression* singleExpression;
         Identifier* identifier;
         Constant* constant;
-        struct {
-            Identifier* identifierArray;
-            Expression* indexExpression;
-        };
-        struct {
-            Identifier* identifierFunc;
-            ListArguments* arguments;
-        };
+        struct { Identifier* identifierArray; Expression* indexExpression; };
+        struct { Identifier* identifierFunc; ListArguments* arguments; };
     };
-    ExpressionType type;
 };
 
 struct ListArguments {
@@ -175,19 +145,23 @@ struct ListArguments {
 };
 
 struct IdentifierSuffix {
+    IdentifierSuffixType type;
     union {
         ListArguments* arguments;
         Expression* indexExpression;
     };
-    IdentifierSuffixType type;
 };
 
 struct VariableSuffix {
+    VariableSuffixType type;
     union {
         Expression* expression;
         ConstantInteger* arraySize;
     };
-    VariableSuffixType type;
+};
+
+struct ParameterArray {
+    ParameterArrayType type;
 };
 
 struct Parameter {
@@ -196,34 +170,23 @@ struct Parameter {
     ParameterArray* array;
 };
 
-struct ParameterArray {
-    ParameterArrayType type;
-};
-
 struct ParameterList {
     Parameter* parameter;
     ParameterList* next;
 };
 
 struct Parameters {
-    union {
-        ParameterList* list;
-    };
-    int type; // 0 for void, 1 for list, 2 for empty
-};
-
-struct Block {
-    Statements* statements;
+    int type;
+    ParameterList* list;
 };
 
 struct FunctionSuffix {
-    union {
-        Block* block;
-    };
-    int type; // 0 for ;, 1 for block
+    int type;
+    Block* block;
 };
 
 struct DeclarationSuffix {
+    DeclarationSuffixType type;
     union {
         VariableSuffix* variableSuffix;
         struct {
@@ -231,7 +194,6 @@ struct DeclarationSuffix {
             FunctionSuffix* functionSuffix;
         };
     };
-    DeclarationSuffixType type;
 };
 
 struct Declaration {
@@ -278,6 +240,7 @@ struct StatementReturn {
 };
 
 struct Statement {
+    StatementType type;
     union {
         struct {
             DataType dataType;
@@ -291,7 +254,6 @@ struct Statement {
         StatementExpression* statementExpression;
         Block* block;
     };
-    StatementType type;
 };
 
 struct Statements {
@@ -299,40 +261,15 @@ struct Statements {
     Statements* next;
 };
 
+struct Block {
+    Statements* statements;
+};
+
 struct Program {
+    ProgramType type;
     union {
         DeclarationList* declarationList;
     };
-    ProgramType type;
 };
-
-/**
- * Node recursive destructors.
- */
-void releaseBlock(Block* block);
-void releaseConstant(Constant* constant);
-void releaseConstantCharacter(ConstantCharacter* constantCharacter);
-void releaseConstantInteger(ConstantInteger* constantInteger);
-void releaseDeclaration(Declaration* declaration);
-void releaseDeclarationList(DeclarationList* declarationList);
-void releaseDeclarationSuffix(DeclarationSuffix* declarationSuffix);
-void releaseExpression(Expression* expression);
-void releaseFunctionSuffix(FunctionSuffix* functionSuffix);
-void releaseIdentifier(Identifier* identifier);
-void releaseIdentifierSuffix(IdentifierSuffix* identifierSuffix);
-void releaseListArguments(ListArguments* listArguments);
-void releaseParameter(Parameter* parameter);
-void releaseParameterArray(ParameterArray* parameterArray);
-void releaseParameterList(ParameterList* parameterList);
-void releaseParameters(Parameters* parameters);
-void releaseProgram(Program* program);
-void releaseStatement(Statement* statement);
-void releaseStatements(Statements* statements);
-void releaseStatementExpression(StatementExpression* statementExpression);
-void releaseStatementFor(StatementFor* statementFor);
-void releaseStatementIf(StatementIf* statementIf);
-void releaseStatementReturn(StatementReturn* statementReturn);
-void releaseStatementWhile(StatementWhile* statementWhile);
-void releaseVariableSuffix(VariableSuffix* variableSuffix);
 
 #endif
