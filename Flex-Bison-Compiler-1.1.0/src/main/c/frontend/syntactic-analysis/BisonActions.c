@@ -32,10 +32,10 @@ static void _logSyntacticAnalyzerAction(const char * functionName) {
 /* PUBLIC FUNCTIONS */
 
 // Program actions
-Program* DeclaracionListaProgramSemanticAction(CompilerState* compilerState, DeclaracionLista* declaracionLista) {
+Program* DeclarationListProgramSemanticAction(CompilerState* compilerState, DeclarationList* declarationList) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Program* program = calloc(1, sizeof(Program));
-    program->declaracionLista = declaracionLista;
+    program->declarationList = declarationList;
     program->type = PROGRAM_DECLARATIONS;
     compilerState->abstractSyntaxtTree = program;
     if (0 < flexCurrentContext()) {
@@ -64,310 +64,310 @@ Program* EmptyProgramSemanticAction(CompilerState* compilerState) {
 }
 
 // Declaration actions
-DeclaracionLista* SingleDeclarationListSemanticAction(Declaracion* declaracion) {
+DeclarationList* SingleDeclarationListSemanticAction(Declaration* declaration) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    DeclaracionLista* lista = calloc(1, sizeof(DeclaracionLista));
-    lista->declaracion = declaracion;
-    lista->next = NULL;
-    return lista;
+    DeclarationList* list = calloc(1, sizeof(DeclarationList));
+    list->declaration = declaration;
+    list->next = NULL;
+    return list;
 }
 
-DeclaracionLista* AppendDeclarationListSemanticAction(DeclaracionLista* lista, Declaracion* declaracion) {
+DeclarationList* AppendDeclarationListSemanticAction(DeclarationList* list, Declaration* declaration) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    DeclaracionLista* newLista = calloc(1, sizeof(DeclaracionLista));
-    newLista->declaracion = declaracion;
-    newLista->next = NULL;
+    DeclarationList* newList = calloc(1, sizeof(DeclarationList));
+    newList->declaration = declaration;
+    newList->next = NULL;
     
-    DeclaracionLista* current = lista;
+    DeclarationList* current = list;
     while (current->next != NULL) {
         current = current->next;
     }
     
-    current->next = newLista;
+    current->next = newList;
     
-    return lista;
+    return list;
 }
 
-Declaracion* RegularDeclarationSemanticAction(DataType type, Identificador* identificador, DeclaracionSufijo* declaracionSufijo) {
+Declaration* RegularDeclarationSemanticAction(DataType type, Identifier* identifier, DeclarationSuffix* declarationSuffix) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Declaracion* declaracion = calloc(1, sizeof(Declaracion));
-    declaracion->dataType = type;  // No conditional check needed
-    declaracion->identifier = identificador;
-    declaracion->declaracionSufijo = declaracionSufijo;
-    declaracion->declarationType = DECLARATION_REGULAR;
-    return declaracion;
+    Declaration* declaration = calloc(1, sizeof(Declaration));
+    declaration->dataType = type;  // No conditional check needed
+    declaration->identifier = identifier;
+    declaration->declarationSuffix = declarationSuffix;
+    declaration->declarationType = DECLARATION_REGULAR;
+    return declaration;
 }
 
-Declaracion* ExternDeclarationSemanticAction(DataType type, Identificador* identificador, DeclaracionSufijo* declaracionSufijo) {
+Declaration* ExternDeclarationSemanticAction(DataType type, Identifier* identifier, DeclarationSuffix* declarationSuffix) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Declaracion* declaracion = calloc(1, sizeof(Declaracion));
-    declaracion->dataType = type;
-    declaracion->identifier = identificador;
-    declaracion->declaracionSufijo = declaracionSufijo;
-    declaracion->declarationType = DECLARATION_EXTERN;
-    return declaracion;
+    Declaration* declaration = calloc(1, sizeof(Declaration));
+    declaration->dataType = type;
+    declaration->identifier = identifier;
+    declaration->declarationSuffix = declarationSuffix;
+    declaration->declarationType = DECLARATION_EXTERN;
+    return declaration;
 }
 
-DeclaracionSufijo* VariableDeclaracionSufijoSemanticAction(VariableSufijo* variableSufijo) {
+DeclarationSuffix* VariableDeclarationSuffixSemanticAction(VariableSuffix* variableSuffix) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    DeclaracionSufijo* sufijo = calloc(1, sizeof(DeclaracionSufijo));
-    sufijo->variableSufijo = variableSufijo;
-    sufijo->type = DECLARACION_SUFIJO_VARIABLE;
-    return sufijo;
+    DeclarationSuffix* suffix = calloc(1, sizeof(DeclarationSuffix));
+    suffix->variableSuffix = variableSuffix;
+    suffix->type = VARIABLE_SUFFIX_DECLARATION;
+    return suffix;
 }
 
-DeclaracionSufijo* FunctionDeclaracionSufijoSemanticAction(Parametros* parametros, FuncionSufijo* funcionSufijo) {
+DeclarationSuffix* FunctionDeclarationSuffixSemanticAction(Parameters* parameters, FunctionSuffix* functionSuffix) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    DeclaracionSufijo* sufijo = calloc(1, sizeof(DeclaracionSufijo));
-    sufijo->parametros = parametros;
-    sufijo->funcionSufijo = funcionSufijo;
-    sufijo->type = DECLARACION_SUFIJO_FUNCTION;
-    return sufijo;
+    DeclarationSuffix* suffix = calloc(1, sizeof(DeclarationSuffix));
+    suffix->parameters = parameters;
+    suffix->functionSuffix = functionSuffix;
+    suffix->type = DECLARATION_SUFFIX_FUNCTION;
+    return suffix;
 }
 
-FuncionSufijo* EmptyFuncionSufijoSemanticAction() {
+FunctionSuffix* EmptyFuncionSuffixSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    FuncionSufijo* sufijo = calloc(1, sizeof(FuncionSufijo));
-    sufijo->type = 0;
-    return sufijo;
+    FunctionSuffix* suffix = calloc(1, sizeof(FunctionSuffix));
+    suffix->type = 0;
+    return suffix;
 }
 
-FuncionSufijo* BlockFuncionSufijoSemanticAction(Bloque* bloque) {
+FunctionSuffix* BlockFuncionSuffixSemanticAction(Block* block) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    FuncionSufijo* sufijo = calloc(1, sizeof(FuncionSufijo));
-    sufijo->bloque = bloque;
-    sufijo->type = 1;
-    return sufijo;
+    FunctionSuffix* suffix = calloc(1, sizeof(FunctionSuffix));
+    suffix->block = block;
+    suffix->type = 1;
+    return suffix;
 }
 
-VariableSufijo* EmptyVariableSufijoSemanticAction() {
+VariableSuffix* EmptyVariableSuffixSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    VariableSufijo* sufijo = calloc(1, sizeof(VariableSufijo));
-    sufijo->type = VARIABLE_SUFIJO_NONE;
-    return sufijo;
+    VariableSuffix* suffix = calloc(1, sizeof(VariableSuffix));
+    suffix->type = VARIABLE_SUFFIX_NONE;
+    return suffix;
 }
 
-VariableSufijo* AssignmentVariableSufijoSemanticAction(Expression* expression) {
+VariableSuffix* AssignmentVariableSuffixSemanticAction(Expression* expression) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    VariableSufijo* sufijo = calloc(1, sizeof(VariableSufijo));
-    sufijo->expression = expression;
-    sufijo->type = VARIABLE_SUFIJO_ASSIGNMENT;
-    return sufijo;
+    VariableSuffix* suffix = calloc(1, sizeof(VariableSuffix));
+    suffix->expression = expression;
+    suffix->type = VARIABLE_SUFFIX_ASSIGNMENT;
+    return suffix;
 }
 
-VariableSufijo* ArrayVariableSufijoSemanticAction(int size) {
+VariableSuffix* ArrayVariableSuffixSemanticAction(int size) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    VariableSufijo* sufijo = calloc(1, sizeof(VariableSufijo));
-    ConstanteEntera* arraySize = calloc(1, sizeof(ConstanteEntera));
+    VariableSuffix* suffix = calloc(1, sizeof(VariableSuffix));
+    ConstantInteger* arraySize = calloc(1, sizeof(ConstantInteger));
     arraySize->value = size;
-    sufijo->arraySize = arraySize;
-    sufijo->type = VARIABLE_SUFIJO_ARRAY;
-    return sufijo;
+    suffix->arraySize = arraySize;
+    suffix->type = VARIABLE_SUFFIX_ARRAY;
+    return suffix;
 }
 
 // Parameter actions
-Parametros* VoidParametrosSemanticAction() {
+Parameters* VoidParametrosSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Parametros* parametros = calloc(1, sizeof(Parametros));
-    parametros->type = 0;
-    return parametros;
+    Parameters* parameters = calloc(1, sizeof(Parameters));
+    parameters->type = 0;
+    return parameters;
 }
 
-Parametros* ListParametrosSemanticAction(ParametroLista* lista) {
+Parameters* ListParametrosSemanticAction(ParameterList* list) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Parametros* parametros = calloc(1, sizeof(Parametros));
-    parametros->lista = lista;
-    parametros->type = 1;
-    return parametros;
+    Parameters* parameters = calloc(1, sizeof(Parameters));
+    parameters->list = list;
+    parameters->type = 1;
+    return parameters;
 }
 
-Parametros* EmptyParametrosSemanticAction() {
+Parameters* EmptyParametrosSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Parametros* parametros = calloc(1, sizeof(Parametros));
-    parametros->type = 2;
-    return parametros;
+    Parameters* parameters = calloc(1, sizeof(Parameters));
+    parameters->type = 2;
+    return parameters;
 }
 
-ParametroLista* SingleParametroListaSemanticAction(Parametro* parametro) {
+ParameterList* SingleParametroListSemanticAction(Parameter* parameter) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ParametroLista* lista = calloc(1, sizeof(ParametroLista));
-    lista->parametro = parametro;
-    lista->next = NULL;
-    return lista;
+    ParameterList* list = calloc(1, sizeof(ParameterList));
+    list->parameter = parameter;
+    list->next = NULL;
+    return list;
 }
 
-ParametroLista* AppendParametroListaSemanticAction(Parametro* parametro, ParametroLista* lista) {
+ParameterList* AppendParametroListSemanticAction(Parameter* parameter, ParameterList* list) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ParametroLista* newLista = calloc(1, sizeof(ParametroLista));
-    newLista->parametro = parametro;
-    newLista->next = lista;
-    return newLista;
+    ParameterList* newList = calloc(1, sizeof(ParameterList));
+    newList->parameter = parameter;
+    newList->next = list;
+    return newList;
 }
 
 
-Parametro* ParametroSemanticAction(DataType type, Identificador* identificador, ParametroArray* array) {
+Parameter* ParametroSemanticAction(DataType type, Identifier* identifier, ParameterArray* array) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Parametro* parametro = calloc(1, sizeof(Parametro));
-    parametro->type = type;
-    parametro->identifier = identificador;
-    parametro->array = array;
-    return parametro;
+    Parameter* parameter = calloc(1, sizeof(Parameter));
+    parameter->type = type;
+    parameter->identifier = identifier;
+    parameter->array = array;
+    return parameter;
 }
 
-ParametroArray* ArrayParametroArraySemanticAction() {
+ParameterArray* ArrayParametroArraySemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ParametroArray* array = calloc(1, sizeof(ParametroArray));
-    array->type = PARAMETRO_ARRAY_BRACKETS;
+    ParameterArray* array = calloc(1, sizeof(ParameterArray));
+    array->type = PARAMETER_ARRAY_BRACKETS;
     return array;
 }
 
-ParametroArray* EmptyParametroArraySemanticAction() {
+ParameterArray* EmptyParametroArraySemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ParametroArray* array = calloc(1, sizeof(ParametroArray));
-    array->type = PARAMETRO_ARRAY_NONE;
+    ParameterArray* array = calloc(1, sizeof(ParameterArray));
+    array->type = PARAMETER_ARRAY_NONE;
     return array;
 }
 
 // Block and statement actions
-Bloque* BloqueSemanticAction(Sentencias* sentencias) {
+Block* BlockSemanticAction(Statements* statements) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Bloque* bloque = calloc(1, sizeof(Bloque));
-    bloque->sentencias = sentencias;
-    return bloque;
+    Block* block = calloc(1, sizeof(Block));
+    block->statements = statements;
+    return block;
 }
 
-Sentencias* AppendSentenciasSemanticAction(Sentencia* sentencia, Sentencias* sentencias) {
+Statements* AppendStatementsSemanticAction(Statement* statement, Statements* statements) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencias* newSentencias = calloc(1, sizeof(Sentencias));
-    newSentencias->sentencia = sentencia;
-    newSentencias->next = sentencias;
-    return newSentencias;
+    Statements* newStatements = calloc(1, sizeof(Statements));
+    newStatements->statement = statement;
+    newStatements->next = statements;
+    return newStatements;
 }
 
-Sentencias* EmptySentenciasSemanticAction() {
+Statements* EmptyStatementsSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     return NULL;
 }
 
 
-Sentencia* DeclarationSentenciaSemanticAction(DataType type, Identificador* identificador, VariableSufijo* variableSufijo) {
+Statement* DeclarationStatementSemanticAction(DataType type, Identifier* identifier, VariableSuffix* variableSuffix) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencia* sentencia = calloc(1, sizeof(Sentencia));
-    sentencia->dataType = type;
-    sentencia->identifier = identificador;
-    sentencia->variableSufijo = variableSufijo;
-    sentencia->type = SENTENCIA_DECLARATION;
-    return sentencia;
+    Statement* statement = calloc(1, sizeof(Statement));
+    statement->dataType = type;
+    statement->identifier = identifier;
+    statement->variableSuffix = variableSuffix;
+    statement->type = STATEMENT_DECLARATION;
+    return statement;
 }
 
-Sentencia* IfSentenciaSemanticAction(SentenciaIf* sentenciaIf) {
+Statement* IfStatementSemanticAction(StatementIf* statementIf) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencia* sentencia = calloc(1, sizeof(Sentencia));
-    sentencia->sentenciaIf = sentenciaIf;
-    sentencia->type = SENTENCIA_IF;
-    return sentencia;
+    Statement* statement = calloc(1, sizeof(Statement));
+    statement->statementIf = statementIf;
+    statement->type = STATEMENT_IF;
+    return statement;
 }
 
-Sentencia* WhileSentenciaSemanticAction(SentenciaWhile* sentenciaWhile) {
+Statement* WhileStatementSemanticAction(StatementWhile* statementWhile) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencia* sentencia = calloc(1, sizeof(Sentencia));
-    sentencia->sentenciaWhile = sentenciaWhile;
-    sentencia->type = SENTENCIA_WHILE;
-    return sentencia;
+    Statement* statement = calloc(1, sizeof(Statement));
+    statement->statementWhile = statementWhile;
+    statement->type = STATEMENT_WHILE;
+    return statement;
 }
 
-Sentencia* ForSentenciaSemanticAction(SentenciaFor* sentenciaFor) {
+Statement* ForStatementSemanticAction(StatementFor* statementFor) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencia* sentencia = calloc(1, sizeof(Sentencia));
-    sentencia->sentenciaFor = sentenciaFor;
-    sentencia->type = SENTENCIA_FOR;
-    return sentencia;
+    Statement* statement = calloc(1, sizeof(Statement));
+    statement->statementFor = statementFor;
+    statement->type = STATEMENT_FOR;
+    return statement;
 }
 
-Sentencia* ReturnSentenciaSemanticAction(SentenciaReturn* sentenciaReturn) {
+Statement* ReturnStatementSemanticAction(StatementReturn* statementReturn) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencia* sentencia = calloc(1, sizeof(Sentencia));
-    sentencia->sentenciaReturn = sentenciaReturn;
-    sentencia->type = SENTENCIA_RETURN;
-    return sentencia;
+    Statement* statement = calloc(1, sizeof(Statement));
+    statement->statementReturn = statementReturn;
+    statement->type = STATEMENT_RETURN;
+    return statement;
 }
 
-Sentencia* ExpressionSentenciaSemanticAction(SentenciaExpresion* sentenciaExpresion) {
+Statement* ExpressionStatementSemanticAction(StatementExpression* statementExpression) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencia* sentencia = calloc(1, sizeof(Sentencia));
-    sentencia->sentenciaExpresion = sentenciaExpresion;
-    sentencia->type = SENTENCIA_EXPRESSION;
-    return sentencia;
+    Statement* statement = calloc(1, sizeof(Statement));
+    statement->statementExpression = statementExpression;
+    statement->type = STATEMENT_EXPRESSION;
+    return statement;
 }
 
-Sentencia* BlockSentenciaSemanticAction(Bloque* bloque) {
+Statement* BlockStatementSemanticAction(Block* block) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencia* sentencia = calloc(1, sizeof(Sentencia));
-    sentencia->bloque = bloque;
-    sentencia->type = SENTENCIA_BLOQUE;
-    return sentencia;
+    Statement* statement = calloc(1, sizeof(Statement));
+    statement->block = block;
+    statement->type = STATEMENT_BLOCK;
+    return statement;
 }
 
-Sentencia* EmptySentenciaSemanticAction() {
+Statement* EmptyStatementSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentencia* sentencia = calloc(1, sizeof(Sentencia));
-    sentencia->type = SENTENCIA_EMPTY;
-    return sentencia;
+    Statement* statement = calloc(1, sizeof(Statement));
+    statement->type = STATEMENT_EMPTY;
+    return statement;
 }
 
-SentenciaExpresion* SentenciaExpresionSemanticAction(Expression* expression) {
+StatementExpression* StatementExpressionSemanticAction(Expression* expression) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    SentenciaExpresion* sentencia = calloc(1, sizeof(SentenciaExpresion));
-    sentencia->expression = expression;
-    return sentencia;
+    StatementExpression* statement = calloc(1, sizeof(StatementExpression));
+    statement->expression = expression;
+    return statement;
 }
 
-SentenciaIf* SimpleSentenciaIfSemanticAction(Expression* condition, Bloque* thenBloque) {
+StatementIf* SimpleStatementIfSemanticAction(Expression* condition, Block* thenBlock) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    SentenciaIf* sentencia = calloc(1, sizeof(SentenciaIf));
-    sentencia->condition = condition;
-    sentencia->thenBloque = thenBloque;
-    sentencia->hasElse = 0;
-    return sentencia;
+    StatementIf* statement = calloc(1, sizeof(StatementIf));
+    statement->condition = condition;
+    statement->thenBlock = thenBlock;
+    statement->hasElse = 0;
+    return statement;
 }
 
-SentenciaIf* WithElseSentenciaIfSemanticAction(Expression* condition, Bloque* thenBloque, Bloque* elseBloque) {
+StatementIf* WithElseStatementIfSemanticAction(Expression* condition, Block* thenBlock, Block* elseBlock) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    SentenciaIf* sentencia = calloc(1, sizeof(SentenciaIf));
-    sentencia->condition = condition;
-    sentencia->thenBloque = thenBloque;
-    sentencia->elseBloque = elseBloque;
-    sentencia->hasElse = 1;
-    return sentencia;
+    StatementIf* statement = calloc(1, sizeof(StatementIf));
+    statement->condition = condition;
+    statement->thenBlock = thenBlock;
+    statement->elseBlock = elseBlock;
+    statement->hasElse = 1;
+    return statement;
 }
 
-SentenciaWhile* SentenciaWhileSemanticAction(Expression* condition, Bloque* bloque) {
+StatementWhile* StatementWhileSemanticAction(Expression* condition, Block* block) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    SentenciaWhile* sentencia = calloc(1, sizeof(SentenciaWhile));
-    sentencia->condition = condition;
-    sentencia->bloque = bloque;
-    return sentencia;
+    StatementWhile* statement = calloc(1, sizeof(StatementWhile));
+    statement->condition = condition;
+    statement->block = block;
+    return statement;
 }
 
-SentenciaFor* SentenciaForSemanticAction(Expression* init, Expression* condition, Expression* update, Bloque* bloque) {
+StatementFor* StatementForSemanticAction(Expression* init, Expression* condition, Expression* update, Block* block) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    SentenciaFor* sentencia = calloc(1, sizeof(SentenciaFor));
-    sentencia->init = init;
-    sentencia->hasInit = (init != NULL) ? 1 : 0;
-    sentencia->condition = condition;
-    sentencia->hasCondition = (condition != NULL) ? 1 : 0;
-    sentencia->update = update;
-    sentencia->hasUpdate = (update != NULL) ? 1 : 0;
-    sentencia->bloque = bloque;
-    return sentencia;
+    StatementFor* statement = calloc(1, sizeof(StatementFor));
+    statement->init = init;
+    statement->hasInit = (init != NULL) ? 1 : 0;
+    statement->condition = condition;
+    statement->hasCondition = (condition != NULL) ? 1 : 0;
+    statement->update = update;
+    statement->hasUpdate = (update != NULL) ? 1 : 0;
+    statement->block = block;
+    return statement;
 }
 
-SentenciaReturn* SentenciaReturnSemanticAction(Expression* expression) {
+StatementReturn* StatementReturnSemanticAction(Expression* expression) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    SentenciaReturn* sentencia = calloc(1, sizeof(SentenciaReturn));
-    sentencia->expression = expression;
-    sentencia->hasExpression = (expression != NULL) ? 1 : 0;
-    return sentencia;
+    StatementReturn* statement = calloc(1, sizeof(StatementReturn));
+    statement->expression = expression;
+    statement->hasExpression = (expression != NULL) ? 1 : 0;
+    return statement;
 }
 
 // Expression actions
@@ -505,30 +505,30 @@ Expression* NotExpressionSemanticAction(Expression* expression) {
     return result;
 }
 
-Expression* IdentifierExpressionSemanticAction(Identificador* identificador, IdentificadorSufijo* sufijo) {
+Expression* IdentifierExpressionSemanticAction(Identifier* identifier, IdentifierSuffix* suffix) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Expression* result = calloc(1, sizeof(Expression));
     
-    if (sufijo->type == IDENTIFICADOR_SUFIJO_NONE) {
-        result->identifier = identificador;
+    if (suffix->type == IDENTIFIER_SUFFIX_NONE) {
+        result->identifier = identifier;
         result->type = EXPRESSION_IDENTIFIER;
-    } else if (sufijo->type == IDENTIFICADOR_SUFIJO_FUNCTION_CALL) {
-        result->identifierFunc = identificador;
-        result->arguments = sufijo->arguments;
+    } else if (suffix->type == IDENTIFIER_SUFFIX_FUNCTION_CALL) {
+        result->identifierFunc = identifier;
+        result->arguments = suffix->arguments;
         result->type = EXPRESSION_FUNCTION_CALL;
-    } else if (sufijo->type == IDENTIFICADOR_SUFIJO_ARRAY_ACCESS) {
-        result->identifierArray = identificador;
-        result->indexExpression = sufijo->indexExpression;
+    } else if (suffix->type == IDENTIFIER_SUFFIX_ARRAY_ACCESS) {
+        result->identifierArray = identifier;
+        result->indexExpression = suffix->indexExpression;
         result->type = EXPRESSION_ARRAY_ACCESS;
     }
     
     return result;
 }
 
-Expression* ConstantExpressionSemanticAction(Constante* constante) {
+Expression* ConstantExpressionSemanticAction(Constant* constant) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Expression* result = calloc(1, sizeof(Expression));
-    result->constant = constante;
+    result->constant = constant;
     result->type = EXPRESSION_CONSTANT;
     return result;
 }
@@ -541,104 +541,104 @@ Expression* ParenthesisExpressionSemanticAction(Expression* expression) {
     return result;
 }
 
-Expression* SimpleExpresionLvalueSemanticAction(Identificador* identificador) {
+Expression* SimpleExpressionLvalueSemanticAction(Identifier* identifier) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Expression* result = calloc(1, sizeof(Expression));
-    result->identifier = identificador;
+    result->identifier = identifier;
     result->type = EXPRESSION_IDENTIFIER;
     return result;
 }
 
-Expression* ArrayExpresionLvalueSemanticAction(Identificador* identificador, Expression* index) {
+Expression* ArrayExpressionLvalueSemanticAction(Identifier* identifier, Expression* index) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Expression* result = calloc(1, sizeof(Expression));
-    result->identifierArray = identificador;
+    result->identifierArray = identifier;
     result->indexExpression = index;
     result->type = EXPRESSION_ARRAY_ACCESS;
     return result;
 }
 
-IdentificadorSufijo* FunctionCallIdentificadorSufijoSemanticAction(ListaArgumentos* arguments) {
+IdentifierSuffix* FunctionCallIdentifierSuffixSemanticAction(ListArguments* arguments) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    IdentificadorSufijo* sufijo = calloc(1, sizeof(IdentificadorSufijo));
-    sufijo->arguments = arguments;
-    sufijo->type = IDENTIFICADOR_SUFIJO_FUNCTION_CALL;
-    return sufijo;
+    IdentifierSuffix* suffix = calloc(1, sizeof(IdentifierSuffix));
+    suffix->arguments = arguments;
+    suffix->type = IDENTIFIER_SUFFIX_FUNCTION_CALL;
+    return suffix;
 }
 
-IdentificadorSufijo* ArrayAccessIdentificadorSufijoSemanticAction(Expression* index) {
+IdentifierSuffix* ArrayAccessIdentifierSuffixSemanticAction(Expression* index) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    IdentificadorSufijo* sufijo = calloc(1, sizeof(IdentificadorSufijo));
-    sufijo->indexExpression = index;
-    sufijo->type = IDENTIFICADOR_SUFIJO_ARRAY_ACCESS;
-    return sufijo;
+    IdentifierSuffix* suffix = calloc(1, sizeof(IdentifierSuffix));
+    suffix->indexExpression = index;
+    suffix->type = IDENTIFIER_SUFFIX_ARRAY_ACCESS;
+    return suffix;
 }
 
-IdentificadorSufijo* EmptyIdentificadorSufijoSemanticAction() {
+IdentifierSuffix* EmptyIdentifierSuffixSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    IdentificadorSufijo* sufijo = calloc(1, sizeof(IdentificadorSufijo));
-    sufijo->type = IDENTIFICADOR_SUFIJO_NONE;
-    return sufijo;
+    IdentifierSuffix* suffix = calloc(1, sizeof(IdentifierSuffix));
+    suffix->type = IDENTIFIER_SUFFIX_NONE;
+    return suffix;
 }
 
-ListaArgumentos* SingleListaArgumentosSemanticAction(Expression* expression) {
+ListArguments* SingleListArgumentsSemanticAction(Expression* expression) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ListaArgumentos* lista = calloc(1, sizeof(ListaArgumentos));
-    lista->expression = expression;
-    lista->next = NULL;
-    return lista;
+    ListArguments* list = calloc(1, sizeof(ListArguments));
+    list->expression = expression;
+    list->next = NULL;
+    return list;
 }
 
-ListaArgumentos* AppendListaArgumentosSemanticAction(ListaArgumentos* lista, Expression* expression) {
+ListArguments* AppendListArgumentsSemanticAction(ListArguments* list, Expression* expression) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ListaArgumentos* current = lista;
+    ListArguments* current = list;
     while (current->next != NULL) {
         current = current->next;
     }
     
-    ListaArgumentos* newArg = calloc(1, sizeof(ListaArgumentos));
+    ListArguments* newArg = calloc(1, sizeof(ListArguments));
     newArg->expression = expression;
     newArg->next = NULL;
     
     current->next = newArg;
     
-    return lista;
+    return list;
 }
 
-Constante* IntegerConstanteSemanticAction(ConstanteEntera* constante) {
+Constant* IntegerConstantSemanticAction(ConstantInteger* constant) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Constante* result = calloc(1, sizeof(Constante));
-    result->entera = constante;
+    Constant* result = calloc(1, sizeof(Constant));
+    result->integer = constant;
     result->type = 0;
     return result;
 }
 
-Constante* CharacterConstanteSemanticAction(ConstanteCaracter* constante) {
+Constant* CharacterConstantSemanticAction(ConstantCharacter* constant) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Constante* result = calloc(1, sizeof(Constante));
-    result->caracter = constante;
+    Constant* result = calloc(1, sizeof(Constant));
+    result->character = constant;
     result->type = 1;
     return result;
 }
 
-ConstanteEntera* ConstanteEnteraSemanticAction(int value) {
+ConstantInteger* ConstantIntegerSemanticAction(int value) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ConstanteEntera* constante = calloc(1, sizeof(ConstanteEntera));
-    constante->value = value;
-    return constante;
+    ConstantInteger* constant = calloc(1, sizeof(ConstantInteger));
+    constant->value = value;
+    return constant;
 }
 
-ConstanteCaracter* ConstanteCaracterSemanticAction(char value) {
+ConstantCharacter* ConstantCharacterSemanticAction(char value) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ConstanteCaracter* constante = calloc(1, sizeof(ConstanteCaracter));
-    constante->value = value;
-    return constante;
+    ConstantCharacter* constant = calloc(1, sizeof(ConstantCharacter));
+    constant->value = value;
+    return constant;
 }
 
 // Identifier action
-Identificador* IdentificadorSemanticAction(char* name) {
+Identifier* IdentifierSemanticAction(char* name) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Identificador* identifier = calloc(1, sizeof(Identificador));
+    Identifier* identifier = calloc(1, sizeof(Identifier));
     identifier->name = name;
     return identifier;
 }

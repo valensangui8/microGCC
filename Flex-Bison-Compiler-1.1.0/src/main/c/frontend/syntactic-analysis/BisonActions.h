@@ -20,46 +20,46 @@ void shutdownBisonActionsModule();
  */
 
 // Program actions
-Program* DeclaracionListaProgramSemanticAction(CompilerState* compilerState, DeclaracionLista* declaracionLista);
+Program* DeclarationListProgramSemanticAction(CompilerState* compilerState, DeclarationList* declarationList);
 Program* EmptyProgramSemanticAction(CompilerState* compilerState);
 
 // Declaration actions
-DeclaracionLista* SingleDeclarationListSemanticAction(Declaracion* declaracion);
-DeclaracionLista* AppendDeclarationListSemanticAction(DeclaracionLista* lista, Declaracion* declaracion);
-DeclaracionSufijo* VariableDeclaracionSufijoSemanticAction(VariableSufijo* variableSufijo);
-DeclaracionSufijo* FunctionDeclaracionSufijoSemanticAction(Parametros* parametros, FuncionSufijo* funcionSufijo);
-FuncionSufijo* EmptyFuncionSufijoSemanticAction();
-FuncionSufijo* BlockFuncionSufijoSemanticAction(Bloque* bloque);
-VariableSufijo* EmptyVariableSufijoSemanticAction();
-VariableSufijo* AssignmentVariableSufijoSemanticAction(Expression* expression);
-VariableSufijo* ArrayVariableSufijoSemanticAction(int size);
+DeclarationList* SingleDeclarationListSemanticAction(Declaration* declaration);
+DeclarationList* AppendDeclarationListSemanticAction(DeclarationList* list, Declaration* declaration);
+DeclarationSuffix* VariableDeclarationSuffixSemanticAction(VariableSuffix* variableSuffix);
+DeclarationSuffix* FunctionDeclarationSuffixSemanticAction(Parameters* parameters, FunctionSuffix* functionSuffix);
+FunctionSuffix* EmptyFuncionSuffixSemanticAction();
+FunctionSuffix* BlockFuncionSuffixSemanticAction(Block* block);
+VariableSuffix* EmptyVariableSuffixSemanticAction();
+VariableSuffix* AssignmentVariableSuffixSemanticAction(Expression* expression);
+VariableSuffix* ArrayVariableSuffixSemanticAction(int size);
 
 // Parameter actions
-Parametros* VoidParametrosSemanticAction();
-Parametros* ListParametrosSemanticAction(ParametroLista* lista);
-Parametros* EmptyParametrosSemanticAction();
-ParametroLista* SingleParametroListaSemanticAction(Parametro* parametro);
-ParametroLista* AppendParametroListaSemanticAction(Parametro* parametro, ParametroLista* lista);
-ParametroArray* ArrayParametroArraySemanticAction();
-ParametroArray* EmptyParametroArraySemanticAction();
+Parameters* VoidParametrosSemanticAction();
+Parameters* ListParametrosSemanticAction(ParameterList* list);
+Parameters* EmptyParametrosSemanticAction();
+ParameterList* SingleParametroListSemanticAction(Parameter* parameter);
+ParameterList* AppendParametroListSemanticAction(Parameter* parameter, ParameterList* list);
+ParameterArray* ArrayParametroArraySemanticAction();
+ParameterArray* EmptyParametroArraySemanticAction();
 
 // Block and statement actions
-Bloque* BloqueSemanticAction(Sentencias* sentencias);
-Sentencias* AppendSentenciasSemanticAction(Sentencia* sentencia, Sentencias* sentencias);
-Sentencias* EmptySentenciasSemanticAction();
-Sentencia* IfSentenciaSemanticAction(SentenciaIf* sentenciaIf);
-Sentencia* WhileSentenciaSemanticAction(SentenciaWhile* sentenciaWhile);
-Sentencia* ForSentenciaSemanticAction(SentenciaFor* sentenciaFor);
-Sentencia* ReturnSentenciaSemanticAction(SentenciaReturn* sentenciaReturn);
-Sentencia* ExpressionSentenciaSemanticAction(SentenciaExpresion* sentenciaExpresion);
-Sentencia* BlockSentenciaSemanticAction(Bloque* bloque);
-Sentencia* EmptySentenciaSemanticAction();
-SentenciaExpresion* SentenciaExpresionSemanticAction(Expression* expression);
-SentenciaIf* SimpleSentenciaIfSemanticAction(Expression* condition, Bloque* thenBloque);
-SentenciaIf* WithElseSentenciaIfSemanticAction(Expression* condition, Bloque* thenBloque, Bloque* elseBloque);
-SentenciaWhile* SentenciaWhileSemanticAction(Expression* condition, Bloque* bloque);
-SentenciaFor* SentenciaForSemanticAction(Expression* init, Expression* condition, Expression* update, Bloque* bloque);
-SentenciaReturn* SentenciaReturnSemanticAction(Expression* expression);
+Block* BlockSemanticAction(Statements* statements);
+Statements* AppendStatementsSemanticAction(Statement* statement, Statements* statements);
+Statements* EmptyStatementsSemanticAction();
+Statement* IfStatementSemanticAction(StatementIf* statementIf);
+Statement* WhileStatementSemanticAction(StatementWhile* statementWhile);
+Statement* ForStatementSemanticAction(StatementFor* statementFor);
+Statement* ReturnStatementSemanticAction(StatementReturn* statementReturn);
+Statement* ExpressionStatementSemanticAction(StatementExpression* statementExpression);
+Statement* BlockStatementSemanticAction(Block* block);
+Statement* EmptyStatementSemanticAction();
+StatementExpression* StatementExpressionSemanticAction(Expression* expression);
+StatementIf* SimpleStatementIfSemanticAction(Expression* condition, Block* thenBlock);
+StatementIf* WithElseStatementIfSemanticAction(Expression* condition, Block* thenBlock, Block* elseBlock);
+StatementWhile* StatementWhileSemanticAction(Expression* condition, Block* block);
+StatementFor* StatementForSemanticAction(Expression* init, Expression* condition, Expression* update, Block* block);
+StatementReturn* StatementReturnSemanticAction(Expression* expression);
 
 // Expression actions
 Expression* AssignmentExpressionSemanticAction(Expression* lvalue, Expression* expression);
@@ -77,28 +77,28 @@ Expression* MultiplicationExpressionSemanticAction(Expression* left, Expression*
 Expression* DivisionExpressionSemanticAction(Expression* left, Expression* right);
 Expression* ModuloExpressionSemanticAction(Expression* left, Expression* right);
 Expression* NotExpressionSemanticAction(Expression* expression);
-Expression* IdentifierExpressionSemanticAction(Identificador* identificador, IdentificadorSufijo* sufijo);
-Expression* ConstantExpressionSemanticAction(Constante* constante);
+Expression* IdentifierExpressionSemanticAction(Identifier* identifier, IdentifierSuffix* suffix);
+Expression* ConstantExpressionSemanticAction(Constant* constant);
 Expression* ParenthesisExpressionSemanticAction(Expression* expression);
-Expression* SimpleExpresionLvalueSemanticAction(Identificador* identificador);
-Expression* ArrayExpresionLvalueSemanticAction(Identificador* identificador, Expression* index);
+Expression* SimpleExpressionLvalueSemanticAction(Identifier* identifier);
+Expression* ArrayExpressionLvalueSemanticAction(Identifier* identifier, Expression* index);
 
 // Identifier suffix actions
-IdentificadorSufijo* FunctionCallIdentificadorSufijoSemanticAction(ListaArgumentos* arguments);
-IdentificadorSufijo* ArrayAccessIdentificadorSufijoSemanticAction(Expression* index);
-IdentificadorSufijo* EmptyIdentificadorSufijoSemanticAction();
+IdentifierSuffix* FunctionCallIdentifierSuffixSemanticAction(ListArguments* arguments);
+IdentifierSuffix* ArrayAccessIdentifierSuffixSemanticAction(Expression* index);
+IdentifierSuffix* EmptyIdentifierSuffixSemanticAction();
 
 // Argument list actions
-ListaArgumentos* SingleListaArgumentosSemanticAction(Expression* expression);
-ListaArgumentos* AppendListaArgumentosSemanticAction(ListaArgumentos* lista, Expression* expression);
+ListArguments* SingleListArgumentsSemanticAction(Expression* expression);
+ListArguments* AppendListArgumentsSemanticAction(ListArguments* list, Expression* expression);
 
 // Constant actions
-Constante* IntegerConstanteSemanticAction(ConstanteEntera* constante);
-Constante* CharacterConstanteSemanticAction(ConstanteCaracter* constante);
-ConstanteEntera* ConstanteEnteraSemanticAction(int value);
-ConstanteCaracter* ConstanteCaracterSemanticAction(char value);
+Constant* IntegerConstantSemanticAction(ConstantInteger* constant);
+Constant* CharacterConstantSemanticAction(ConstantCharacter* constant);
+ConstantInteger* ConstantIntegerSemanticAction(int value);
+ConstantCharacter* ConstantCharacterSemanticAction(char value);
 
 // Identifier action
-Identificador* IdentificadorSemanticAction(char* name);
+Identifier* IdentifierSemanticAction(char* name);
 
 #endif

@@ -16,40 +16,40 @@ void shutdownAbstractSyntaxTreeModule();
 
 typedef enum DataType DataType;
 typedef enum DeclarationType DeclarationType;
-typedef enum DeclaracionSufijoType DeclaracionSufijoType;
+typedef enum DeclarationSuffixType DeclarationSuffixType;
 typedef enum ExpressionType ExpressionType;
-typedef enum IdentificadorSufijoType IdentificadorSufijoType;
-typedef enum ParametroArrayType ParametroArrayType;
+typedef enum IdentifierSuffixType IdentifierSuffixType;
+typedef enum ParameterArrayType ParameterArrayType;
 typedef enum ProgramType ProgramType;
-typedef enum SentenciaType SentenciaType;
 typedef enum StatementType StatementType;
-typedef enum VariableSufijoType VariableSufijoType;
+typedef enum StatementType StatementType;
+typedef enum VariableSuffixType VariableSuffixType;
 
-typedef struct Bloque Bloque;
-typedef struct Constante Constante;
-typedef struct ConstanteCaracter ConstanteCaracter;
-typedef struct ConstanteEntera ConstanteEntera;
-typedef struct Declaracion Declaracion;
-typedef struct DeclaracionLista DeclaracionLista;
-typedef struct DeclaracionSufijo DeclaracionSufijo;
+typedef struct Block Block;
+typedef struct Constant Constant;
+typedef struct ConstantCharacter ConstantCharacter;
+typedef struct ConstantInteger ConstantInteger;
+typedef struct Declaration Declaration;
+typedef struct DeclarationList DeclarationList;
+typedef struct DeclarationSuffix DeclarationSuffix;
 typedef struct Expression Expression;
-typedef struct FuncionSufijo FuncionSufijo;
-typedef struct Identificador Identificador;
-typedef struct IdentificadorSufijo IdentificadorSufijo;
-typedef struct ListaArgumentos ListaArgumentos;
-typedef struct Parametro Parametro;
-typedef struct ParametroArray ParametroArray;
-typedef struct ParametroLista ParametroLista;
-typedef struct Parametros Parametros;
+typedef struct FunctionSuffix FunctionSuffix;
+typedef struct Identifier Identifier;
+typedef struct IdentifierSuffix IdentifierSuffix;
+typedef struct ListArguments ListArguments;
+typedef struct Parameter Parameter;
+typedef struct ParameterArray ParameterArray;
+typedef struct ParameterList ParameterList;
+typedef struct Parameters Parameters;
 typedef struct Program Program;
-typedef struct Sentencia Sentencia;
-typedef struct Sentencias Sentencias;
-typedef struct SentenciaExpresion SentenciaExpresion;
-typedef struct SentenciaFor SentenciaFor;
-typedef struct SentenciaIf SentenciaIf;
-typedef struct SentenciaReturn SentenciaReturn;
-typedef struct SentenciaWhile SentenciaWhile;
-typedef struct VariableSufijo VariableSufijo;
+typedef struct Statement Statement;
+typedef struct Statements Statements;
+typedef struct StatementExpression StatementExpression;
+typedef struct StatementFor StatementFor;
+typedef struct StatementIf StatementIf;
+typedef struct StatementReturn StatementReturn;
+typedef struct StatementWhile StatementWhile;
+typedef struct VariableSuffix VariableSuffix;
 
 /**
  * Node types for the Abstract Syntax Tree (AST).
@@ -65,9 +65,9 @@ enum DeclarationType {
     DECLARATION_EXTERN
 };
 
-enum DeclaracionSufijoType {
-    DECLARACION_SUFIJO_VARIABLE,
-    DECLARACION_SUFIJO_FUNCTION
+enum DeclarationSuffixType {
+    VARIABLE_SUFFIX_DECLARATION,
+    DECLARATION_SUFFIX_FUNCTION
 };
 
 enum ExpressionType {
@@ -93,15 +93,15 @@ enum ExpressionType {
     EXPRESSION_FUNCTION_CALL
 };
 
-enum IdentificadorSufijoType {
-    IDENTIFICADOR_SUFIJO_NONE,
-    IDENTIFICADOR_SUFIJO_FUNCTION_CALL,
-    IDENTIFICADOR_SUFIJO_ARRAY_ACCESS
+enum IdentifierSuffixType {
+    IDENTIFIER_SUFFIX_NONE,
+    IDENTIFIER_SUFFIX_FUNCTION_CALL,
+    IDENTIFIER_SUFFIX_ARRAY_ACCESS
 };
 
-enum ParametroArrayType {
-    PARAMETRO_ARRAY_NONE,
-    PARAMETRO_ARRAY_BRACKETS
+enum ParameterArrayType {
+    PARAMETER_ARRAY_NONE,
+    PARAMETER_ARRAY_BRACKETS
 };
 
 enum ProgramType {
@@ -109,40 +109,40 @@ enum ProgramType {
     PROGRAM_DECLARATIONS
 };
 
-enum SentenciaType {
-    SENTENCIA_DECLARATION,
-    SENTENCIA_IF,
-    SENTENCIA_WHILE,
-    SENTENCIA_FOR,
-    SENTENCIA_RETURN,
-    SENTENCIA_EXPRESSION,
-    SENTENCIA_BLOQUE,
-    SENTENCIA_EMPTY
+enum StatementType {
+    STATEMENT_DECLARATION,
+    STATEMENT_IF,
+    STATEMENT_WHILE,
+    STATEMENT_FOR,
+    STATEMENT_RETURN,
+    STATEMENT_EXPRESSION,
+    STATEMENT_BLOCK,
+    STATEMENT_EMPTY
 };
 
-enum VariableSufijoType {
-    VARIABLE_SUFIJO_NONE,
-    VARIABLE_SUFIJO_ASSIGNMENT,
-    VARIABLE_SUFIJO_ARRAY
+enum VariableSuffixType {
+    VARIABLE_SUFFIX_NONE,
+    VARIABLE_SUFFIX_ASSIGNMENT,
+    VARIABLE_SUFFIX_ARRAY
 };
 
-struct ConstanteEntera {
+struct ConstantInteger {
     int value;
 };
 
-struct ConstanteCaracter {
+struct ConstantCharacter {
     char value;
 };
 
-struct Constante {
+struct Constant {
     union {
-        ConstanteEntera* entera;
-        ConstanteCaracter* caracter;
+        ConstantInteger* integer;
+        ConstantCharacter* character;
     };
-    int type; // 0 for entera, 1 for caracter
+    int type; // 0 for integer, 1 for character
 };
 
-struct Identificador {
+struct Identifier {
     char* name;
 };
 
@@ -155,153 +155,153 @@ struct Expression {
         struct {
             Expression* singleExpression;
         };
-        Identificador* identifier;
-        Constante* constant;
+        Identifier* identifier;
+        Constant* constant;
         struct {
-            Identificador* identifierArray;
+            Identifier* identifierArray;
             Expression* indexExpression;
         };
         struct {
-            Identificador* identifierFunc;
-            ListaArgumentos* arguments;
+            Identifier* identifierFunc;
+            ListArguments* arguments;
         };
     };
     ExpressionType type;
 };
 
-struct ListaArgumentos {
+struct ListArguments {
     Expression* expression;
-    ListaArgumentos* next;
+    ListArguments* next;
 };
 
-struct IdentificadorSufijo {
+struct IdentifierSuffix {
     union {
-        ListaArgumentos* arguments;
+        ListArguments* arguments;
         Expression* indexExpression;
     };
-    IdentificadorSufijoType type;
+    IdentifierSuffixType type;
 };
 
-struct VariableSufijo {
+struct VariableSuffix {
     union {
         Expression* expression;
-        ConstanteEntera* arraySize;
+        ConstantInteger* arraySize;
     };
-    VariableSufijoType type;
+    VariableSuffixType type;
 };
 
-struct Parametro {
+struct Parameter {
     DataType type;
-    Identificador* identifier;
-    ParametroArray* array;
+    Identifier* identifier;
+    ParameterArray* array;
 };
 
-struct ParametroArray {
-    ParametroArrayType type;
+struct ParameterArray {
+    ParameterArrayType type;
 };
 
-struct ParametroLista {
-    Parametro* parametro;
-    ParametroLista* next;
+struct ParameterList {
+    Parameter* parameter;
+    ParameterList* next;
 };
 
-struct Parametros {
+struct Parameters {
     union {
-        ParametroLista* lista;
+        ParameterList* list;
     };
-    int type; // 0 for void, 1 for lista, 2 for empty
+    int type; // 0 for void, 1 for list, 2 for empty
 };
 
-struct Bloque {
-    Sentencias* sentencias;
+struct Block {
+    Statements* statements;
 };
 
-struct FuncionSufijo {
+struct FunctionSuffix {
     union {
-        Bloque* bloque;
+        Block* block;
     };
-    int type; // 0 for ;, 1 for bloque
+    int type; // 0 for ;, 1 for block
 };
 
-struct DeclaracionSufijo {
+struct DeclarationSuffix {
     union {
-        VariableSufijo* variableSufijo;
+        VariableSuffix* variableSuffix;
         struct {
-            Parametros* parametros;
-            FuncionSufijo* funcionSufijo;
+            Parameters* parameters;
+            FunctionSuffix* functionSuffix;
         };
     };
-    DeclaracionSufijoType type;
+    DeclarationSuffixType type;
 };
 
-struct Declaracion {
+struct Declaration {
     DataType dataType;
-    Identificador* identifier;
-    DeclaracionSufijo* declaracionSufijo;
+    Identifier* identifier;
+    DeclarationSuffix* declarationSuffix;
     DeclarationType declarationType;
 };
 
-struct DeclaracionLista {
-    Declaracion* declaracion;
-    DeclaracionLista* next;
+struct DeclarationList {
+    Declaration* declaration;
+    DeclarationList* next;
 };
 
-struct SentenciaExpresion {
+struct StatementExpression {
     Expression* expression;
 };
 
-struct SentenciaIf {
+struct StatementIf {
     Expression* condition;
-    Bloque* thenBloque;
-    Bloque* elseBloque;
+    Block* thenBlock;
+    Block* elseBlock;
     int hasElse;
 };
 
-struct SentenciaWhile {
+struct StatementWhile {
     Expression* condition;
-    Bloque* bloque;
+    Block* block;
 };
 
-struct SentenciaFor {
+struct StatementFor {
     Expression* init;
     int hasInit;
     Expression* condition;
     int hasCondition;
     Expression* update;
     int hasUpdate;
-    Bloque* bloque;
+    Block* block;
 };
 
-struct SentenciaReturn {
+struct StatementReturn {
     Expression* expression;
     int hasExpression;
 };
 
-struct Sentencia {
+struct Statement {
     union {
         struct {
             DataType dataType;
-            Identificador* identifier;
-            VariableSufijo* variableSufijo;
+            Identifier* identifier;
+            VariableSuffix* variableSuffix;
         };
-        SentenciaIf* sentenciaIf;
-        SentenciaWhile* sentenciaWhile;
-        SentenciaFor* sentenciaFor;
-        SentenciaReturn* sentenciaReturn;
-        SentenciaExpresion* sentenciaExpresion;
-        Bloque* bloque;
+        StatementIf* statementIf;
+        StatementWhile* statementWhile;
+        StatementFor* statementFor;
+        StatementReturn* statementReturn;
+        StatementExpression* statementExpression;
+        Block* block;
     };
-    SentenciaType type;
+    StatementType type;
 };
 
-struct Sentencias {
-    Sentencia* sentencia;
-    Sentencias* next;
+struct Statements {
+    Statement* statement;
+    Statements* next;
 };
 
 struct Program {
     union {
-        DeclaracionLista* declaracionLista;
+        DeclarationList* declarationList;
     };
     ProgramType type;
 };
@@ -309,30 +309,30 @@ struct Program {
 /**
  * Node recursive destructors.
  */
-void releaseBloque(Bloque* bloque);
-void releaseConstante(Constante* constante);
-void releaseConstanteCaracter(ConstanteCaracter* constanteCaracter);
-void releaseConstanteEntera(ConstanteEntera* constanteEntera);
-void releaseDeclaracion(Declaracion* declaracion);
-void releaseDeclaracionLista(DeclaracionLista* declaracionLista);
-void releaseDeclaracionSufijo(DeclaracionSufijo* declaracionSufijo);
+void releaseBlock(Block* block);
+void releaseConstant(Constant* constant);
+void releaseConstantCharacter(ConstantCharacter* constantCharacter);
+void releaseConstantInteger(ConstantInteger* constantInteger);
+void releaseDeclaration(Declaration* declaration);
+void releaseDeclarationList(DeclarationList* declarationList);
+void releaseDeclarationSuffix(DeclarationSuffix* declarationSuffix);
 void releaseExpression(Expression* expression);
-void releaseFuncionSufijo(FuncionSufijo* funcionSufijo);
-void releaseIdentificador(Identificador* identificador);
-void releaseIdentificadorSufijo(IdentificadorSufijo* identificadorSufijo);
-void releaseListaArgumentos(ListaArgumentos* listaArgumentos);
-void releaseParametro(Parametro* parametro);
-void releaseParametroArray(ParametroArray* parametroArray);
-void releaseParametroLista(ParametroLista* parametroLista);
-void releaseParametros(Parametros* parametros);
+void releaseFunctionSuffix(FunctionSuffix* functionSuffix);
+void releaseIdentifier(Identifier* identifier);
+void releaseIdentifierSuffix(IdentifierSuffix* identifierSuffix);
+void releaseListArguments(ListArguments* listArguments);
+void releaseParameter(Parameter* parameter);
+void releaseParameterArray(ParameterArray* parameterArray);
+void releaseParameterList(ParameterList* parameterList);
+void releaseParameters(Parameters* parameters);
 void releaseProgram(Program* program);
-void releaseSentencia(Sentencia* sentencia);
-void releaseSentencias(Sentencias* sentencias);
-void releaseSentenciaExpresion(SentenciaExpresion* sentenciaExpresion);
-void releaseSentenciaFor(SentenciaFor* sentenciaFor);
-void releaseSentenciaIf(SentenciaIf* sentenciaIf);
-void releaseSentenciaReturn(SentenciaReturn* sentenciaReturn);
-void releaseSentenciaWhile(SentenciaWhile* sentenciaWhile);
-void releaseVariableSufijo(VariableSufijo* variableSufijo);
+void releaseStatement(Statement* statement);
+void releaseStatements(Statements* statements);
+void releaseStatementExpression(StatementExpression* statementExpression);
+void releaseStatementFor(StatementFor* statementFor);
+void releaseStatementIf(StatementIf* statementIf);
+void releaseStatementReturn(StatementReturn* statementReturn);
+void releaseStatementWhile(StatementWhile* statementWhile);
+void releaseVariableSuffix(VariableSuffix* variableSuffix);
 
 #endif

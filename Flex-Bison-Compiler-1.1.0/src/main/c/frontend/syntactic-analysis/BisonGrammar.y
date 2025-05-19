@@ -17,31 +17,31 @@
 	Token token;
 
 	/** Non-terminals. */
-	Bloque* bloque;
-	Constante* constante;
-	ConstanteCaracter* constanteCaracter;
-	ConstanteEntera* constanteEntera;
-	Declaracion* declaracion;
-	DeclaracionLista* declaracionLista;
-	DeclaracionSufijo* declaracionSufijo;
+	Block* block;
+	Constant* constant;
+	ConstantCharacter* constantCharacter;
+	ConstantInteger* constantInteger;
+	Declaration* declaration;
+	DeclarationList* declarationList;
+	DeclarationSuffix* declarationSuffix;
 	Expression* expression;
-	FuncionSufijo* funcionSufijo;
-	Identificador* identificador;
-	IdentificadorSufijo* identificadorSufijo;
-	ListaArgumentos* listaArgumentos;
-	Parametro* parametro;
-	ParametroArray* parametroArray;
-	ParametroLista* parametroLista;
-	Parametros* parametros;
+	FunctionSuffix* functionSuffix;
+	Identifier* identifier;
+	IdentifierSuffix* identifierSuffix;
+	ListArguments* listArguments;
+	Parameter* parameter;
+	ParameterArray* parameterArray;
+	ParameterList* parameterList;
+	Parameters* parameters;
 	Program* program;
-	Sentencia* sentencia;
-	Sentencias* sentencias;
-	SentenciaExpresion* sentenciaExpresion;
-	SentenciaFor* sentenciaFor;
-	SentenciaIf* sentenciaIf;
-	SentenciaReturn* sentenciaReturn;
-	SentenciaWhile* sentenciaWhile;
-	VariableSufijo* variableSufijo;
+	Statement* statement;
+	Statements* statements;
+	StatementExpression* statementExpression;
+	StatementFor* statementFor;
+	StatementIf* statementIf;
+	StatementReturn* statementReturn;
+	StatementWhile* statementWhile;
+	VariableSuffix* variableSuffix;
 }
 
 /** Terminals. */
@@ -85,209 +85,209 @@
 %token <token> UNKNOWN
 
 /** Non-terminals. */
-%type <bloque> Bloque
-%type <constante> Constante
-%type <constanteCaracter> ConstanteCaracter
-%type <constanteEntera> ConstanteEntera
-%type <declaracion> Declaracion
-%type <declaracionLista> DeclaracionLista
-%type <declaracionSufijo> DeclaracionSufijo
-%type <expression> Expresion
-%type <expression> ExpresionAditiva
-%type <expression> ExpresionAnd
-%type <expression> ExpresionAsignacion
-%type <expression> ExpresionIgualdad
-%type <expression> ExpresionLvalue
-%type <expression> ExpresionMultiplicativa
-%type <expression> ExpresionMultiplicativaSufijo
-%type <expression> ExpresionOpt
-%type <expression> ExpresionOr
-%type <expression> ExpresionPrimaria
-%type <expression> ExpresionRelacional
-%type <expression> ExpresionUnaria
-%type <funcionSufijo> FuncionSufijo
-%type <identificador> Identificador
-%type <identificadorSufijo> IdentificadorSufijo
-%type <listaArgumentos> Argumentos
-%type <listaArgumentos> ListaArgumentos
-%type <parametro> Parametro
-%type <parametroArray> ParametroArray
-%type <parametroLista> ParametroLista
-%type <parametros> Parametros
+%type <block> Block
+%type <constant> Constant
+%type <constantCharacter> ConstantCharacter
+%type <constantInteger> ConstantInteger
+%type <declaration> Declaration
+%type <declarationList> DeclarationList
+%type <declarationSuffix> DeclarationSuffix
+%type <expression> Expression
+%type <expression> ExpressionAditiva
+%type <expression> ExpressionAnd
+%type <expression> ExpressionAsignacion
+%type <expression> ExpressionIgualdad
+%type <expression> ExpressionLvalue
+%type <expression> ExpressionMultiplicativa
+%type <expression> ExpressionMultiplicativaSuffix
+%type <expression> ExpressionOpt
+%type <expression> ExpressionOr
+%type <expression> ExpressionPrimaria
+%type <expression> ExpressionRelacional
+%type <expression> ExpressionUnaria
+%type <functionSuffix> FunctionSuffix
+%type <identifier> Identifier
+%type <identifierSuffix> IdentifierSuffix
+%type <listArguments> Arguments
+%type <listArguments> ListArguments
+%type <parameter> Parameter
+%type <parameterArray> ParameterArray
+%type <parameterList> ParameterList
+%type <parameters> Parameters
 %type <program> Programa
-%type <sentencia> Sentencia
-%type <sentencias> Sentencias
-%type <sentenciaExpresion> SentenciaExpresion
-%type <sentenciaFor> SentenciaFor
-%type <sentenciaIf> SentenciaIf
-%type <sentenciaReturn> SentenciaReturn
-%type <sentenciaWhile> SentenciaWhile
-%type <dataType> Tipo
-%type <variableSufijo> VariableSufijo
+%type <statement> Statement
+%type <statements> Statements
+%type <statementExpression> StatementExpression
+%type <statementFor> StatementFor
+%type <statementIf> StatementIf
+%type <statementReturn> StatementReturn
+%type <statementWhile> StatementWhile
+%type <dataType> Type
+%type <variableSuffix> VariableSuffix
 
 
 %%
 
-Programa: DeclaracionLista                                             { $$ = DeclaracionListaProgramSemanticAction(currentCompilerState(), $1); }
+Programa: DeclarationList                                             { $$ = DeclarationListProgramSemanticAction(currentCompilerState(), $1); }
 	| %empty                                                           { $$ = EmptyProgramSemanticAction(currentCompilerState()); }
 	;
 
-DeclaracionLista: Declaracion                                          { $$ = SingleDeclarationListSemanticAction($1); }
-	| DeclaracionLista Declaracion                                     { $$ = AppendDeclarationListSemanticAction($1, $2); }
+DeclarationList: Declaration                                          { $$ = SingleDeclarationListSemanticAction($1); }
+	| DeclarationList Declaration                                     { $$ = AppendDeclarationListSemanticAction($1, $2); }
 	;
 
-Declaracion: Tipo Identificador DeclaracionSufijo                      { $$ = RegularDeclarationSemanticAction($1, $2, $3); }
-	| EXTERN Tipo Identificador DeclaracionSufijo                      { $$ = ExternDeclarationSemanticAction($2, $3, $4); }
+Declaration: Type Identifier DeclarationSuffix                      { $$ = RegularDeclarationSemanticAction($1, $2, $3); }
+	| EXTERN Type Identifier DeclarationSuffix                      { $$ = ExternDeclarationSemanticAction($2, $3, $4); }
 	;
 
-DeclaracionSufijo: VariableSufijo SEMICOLON                            { $$ = VariableDeclaracionSufijoSemanticAction($1); }
-	| OPEN_PARENTHESIS Parametros CLOSE_PARENTHESIS FuncionSufijo      { $$ = FunctionDeclaracionSufijoSemanticAction($2, $4); }
+DeclarationSuffix: VariableSuffix SEMICOLON                            { $$ = VariableDeclarationSuffixSemanticAction($1); }
+	| OPEN_PARENTHESIS Parameters CLOSE_PARENTHESIS FunctionSuffix      { $$ = FunctionDeclarationSuffixSemanticAction($2, $4); }
 	;
 
-FuncionSufijo: SEMICOLON                                               { $$ = EmptyFuncionSufijoSemanticAction(); }
-	| Bloque                                                           { $$ = BlockFuncionSufijoSemanticAction($1); }
+FunctionSuffix: SEMICOLON                                               { $$ = EmptyFuncionSuffixSemanticAction(); }
+	| Block                                                           { $$ = BlockFuncionSuffixSemanticAction($1); }
 	;
 
-VariableSufijo: %empty                                                 { $$ = EmptyVariableSufijoSemanticAction(); }
-	| ASSIGN Expresion                                                 { $$ = AssignmentVariableSufijoSemanticAction($2); }
-	| OPEN_BRACKET INTEGER CLOSE_BRACKET                               { $$ = ArrayVariableSufijoSemanticAction($2); }
+VariableSuffix: %empty                                                 { $$ = EmptyVariableSuffixSemanticAction(); }
+	| ASSIGN Expression                                                 { $$ = AssignmentVariableSuffixSemanticAction($2); }
+	| OPEN_BRACKET INTEGER CLOSE_BRACKET                               { $$ = ArrayVariableSuffixSemanticAction($2); }
 	;
 
-Parametros: VOID                                                       { $$ = VoidParametrosSemanticAction(); }
-	| ParametroLista                                                   { $$ = ListParametrosSemanticAction($1); }
+Parameters: VOID                                                       { $$ = VoidParametrosSemanticAction(); }
+	| ParameterList                                                   { $$ = ListParametrosSemanticAction($1); }
 	| %empty                                                           { $$ = EmptyParametrosSemanticAction(); }
 	;
 
-ParametroLista: Parametro                                              { $$ = SingleParametroListaSemanticAction($1); }
-	| Parametro COMMA ParametroLista                                   { $$ = AppendParametroListaSemanticAction($1, $3); }
+ParameterList: Parameter                                              { $$ = SingleParametroListSemanticAction($1); }
+	| Parameter COMMA ParameterList                                   { $$ = AppendParametroListSemanticAction($1, $3); }
 	;
 
-Parametro: Tipo Identificador ParametroArray                           { $$ = ParametroSemanticAction($1, $2, $3); }
+Parameter: Type Identifier ParameterArray                           { $$ = ParametroSemanticAction($1, $2, $3); }
 	;
 
-ParametroArray: OPEN_BRACKET CLOSE_BRACKET                             { $$ = ArrayParametroArraySemanticAction(); }
+ParameterArray: OPEN_BRACKET CLOSE_BRACKET                             { $$ = ArrayParametroArraySemanticAction(); }
 	| %empty                                                           { $$ = EmptyParametroArraySemanticAction(); }
 	;
 
-Tipo: INT                                                              { $$ = TYPE_INT; }
+Type: INT                                                              { $$ = TYPE_INT; }
 	| CHAR                                                             { $$ = TYPE_CHAR; }
 	;
 
-Bloque: OPEN_BRACE Sentencias CLOSE_BRACE                              { $$ = BloqueSemanticAction($2); }
+Block: OPEN_BRACE Statements CLOSE_BRACE                              { $$ = BlockSemanticAction($2); }
 	;
 
-Sentencias: Sentencia Sentencias                                       { $$ = AppendSentenciasSemanticAction($1, $2); }
-	| %empty                                                           { $$ = EmptySentenciasSemanticAction(); }
+Statements: Statement Statements                                       { $$ = AppendStatementsSemanticAction($1, $2); }
+	| %empty                                                           { $$ = EmptyStatementsSemanticAction(); }
 	;
 
-Sentencia: Tipo Identificador VariableSufijo SEMICOLON                 { $$ = DeclarationSentenciaSemanticAction($1, $2, $3); }
-	| SentenciaIf                                                      { $$ = IfSentenciaSemanticAction($1); }
-	| SentenciaWhile                                                   { $$ = WhileSentenciaSemanticAction($1); }
-	| SentenciaFor                                                     { $$ = ForSentenciaSemanticAction($1); }
-	| SentenciaReturn                                                  { $$ = ReturnSentenciaSemanticAction($1); }
-	| SentenciaExpresion                                               { $$ = ExpressionSentenciaSemanticAction($1); }
-	| Bloque                                                           { $$ = BlockSentenciaSemanticAction($1); }
-	| SEMICOLON                                                        { $$ = EmptySentenciaSemanticAction(); }
+Statement: Type Identifier VariableSuffix SEMICOLON                 { $$ = DeclarationStatementSemanticAction($1, $2, $3); }
+	| StatementIf                                                      { $$ = IfStatementSemanticAction($1); }
+	| StatementWhile                                                   { $$ = WhileStatementSemanticAction($1); }
+	| StatementFor                                                     { $$ = ForStatementSemanticAction($1); }
+	| StatementReturn                                                  { $$ = ReturnStatementSemanticAction($1); }
+	| StatementExpression                                               { $$ = ExpressionStatementSemanticAction($1); }
+	| Block                                                           { $$ = BlockStatementSemanticAction($1); }
+	| SEMICOLON                                                        { $$ = EmptyStatementSemanticAction(); }
 	;
 
-SentenciaExpresion: Expresion SEMICOLON                                { $$ = SentenciaExpresionSemanticAction($1); }
+StatementExpression: Expression SEMICOLON                                { $$ = StatementExpressionSemanticAction($1); }
 	;
 
-SentenciaIf: IF OPEN_PARENTHESIS Expresion CLOSE_PARENTHESIS Bloque    { $$ = SimpleSentenciaIfSemanticAction($3, $5); }
-	| IF OPEN_PARENTHESIS Expresion CLOSE_PARENTHESIS Bloque ELSE Bloque { $$ = WithElseSentenciaIfSemanticAction($3, $5, $7); }
+StatementIf: IF OPEN_PARENTHESIS Expression CLOSE_PARENTHESIS Block    { $$ = SimpleStatementIfSemanticAction($3, $5); }
+	| IF OPEN_PARENTHESIS Expression CLOSE_PARENTHESIS Block ELSE Block { $$ = WithElseStatementIfSemanticAction($3, $5, $7); }
 	;
 
-SentenciaWhile: WHILE OPEN_PARENTHESIS Expresion CLOSE_PARENTHESIS Bloque { $$ = SentenciaWhileSemanticAction($3, $5); }
+StatementWhile: WHILE OPEN_PARENTHESIS Expression CLOSE_PARENTHESIS Block { $$ = StatementWhileSemanticAction($3, $5); }
 	;
 
-SentenciaFor: FOR OPEN_PARENTHESIS ExpresionOpt SEMICOLON ExpresionOpt SEMICOLON ExpresionOpt CLOSE_PARENTHESIS Bloque { $$ = SentenciaForSemanticAction($3, $5, $7, $9); }
+StatementFor: FOR OPEN_PARENTHESIS ExpressionOpt SEMICOLON ExpressionOpt SEMICOLON ExpressionOpt CLOSE_PARENTHESIS Block { $$ = StatementForSemanticAction($3, $5, $7, $9); }
 	;
 
-ExpresionOpt: Expresion                                                { $$ = $1; }
+ExpressionOpt: Expression                                                { $$ = $1; }
 	| %empty                                                           { $$ = NULL; }
 	;
 
-SentenciaReturn: RETURN ExpresionOpt SEMICOLON                         { $$ = SentenciaReturnSemanticAction($2); }
+StatementReturn: RETURN ExpressionOpt SEMICOLON                         { $$ = StatementReturnSemanticAction($2); }
 	;
 
-Expresion: ExpresionAsignacion                                         { $$ = $1; }
+Expression: ExpressionAsignacion                                         { $$ = $1; }
 	;
 
-ExpresionAsignacion: ExpresionOr                                       { $$ = $1; }
-	| ExpresionLvalue ASSIGN ExpresionAsignacion                       { $$ = AssignmentExpressionSemanticAction($1, $3); }
+ExpressionAsignacion: ExpressionOr                                       { $$ = $1; }
+	| ExpressionLvalue ASSIGN ExpressionAsignacion                       { $$ = AssignmentExpressionSemanticAction($1, $3); }
 	;
 
-ExpresionOr: ExpresionAnd                                              { $$ = $1; }
-	| ExpresionOr OR ExpresionAnd                                      { $$ = OrExpressionSemanticAction($1, $3); }
+ExpressionOr: ExpressionAnd                                              { $$ = $1; }
+	| ExpressionOr OR ExpressionAnd                                      { $$ = OrExpressionSemanticAction($1, $3); }
 	;
 
-ExpresionAnd: ExpresionIgualdad                                        { $$ = $1; }
-	| ExpresionAnd AND ExpresionIgualdad                               { $$ = AndExpressionSemanticAction($1, $3); }
+ExpressionAnd: ExpressionIgualdad                                        { $$ = $1; }
+	| ExpressionAnd AND ExpressionIgualdad                               { $$ = AndExpressionSemanticAction($1, $3); }
 	;
 
-ExpresionIgualdad: ExpresionRelacional                                 { $$ = $1; }
-	| ExpresionIgualdad EQUAL ExpresionRelacional                      { $$ = EqualExpressionSemanticAction($1, $3); }
-	| ExpresionIgualdad NOT_EQUAL ExpresionRelacional                  { $$ = NotEqualExpressionSemanticAction($1, $3); }
+ExpressionIgualdad: ExpressionRelacional                                 { $$ = $1; }
+	| ExpressionIgualdad EQUAL ExpressionRelacional                      { $$ = EqualExpressionSemanticAction($1, $3); }
+	| ExpressionIgualdad NOT_EQUAL ExpressionRelacional                  { $$ = NotEqualExpressionSemanticAction($1, $3); }
 	;
 
-ExpresionRelacional: ExpresionAditiva                                  { $$ = $1; }
-	| ExpresionRelacional LESS ExpresionAditiva                        { $$ = LessExpressionSemanticAction($1, $3); }
-	| ExpresionRelacional GREATER ExpresionAditiva                     { $$ = GreaterExpressionSemanticAction($1, $3); }
-	| ExpresionRelacional LESS_EQUAL ExpresionAditiva                  { $$ = LessEqualExpressionSemanticAction($1, $3); }
-	| ExpresionRelacional GREATER_EQUAL ExpresionAditiva               { $$ = GreaterEqualExpressionSemanticAction($1, $3); }
+ExpressionRelacional: ExpressionAditiva                                  { $$ = $1; }
+	| ExpressionRelacional LESS ExpressionAditiva                        { $$ = LessExpressionSemanticAction($1, $3); }
+	| ExpressionRelacional GREATER ExpressionAditiva                     { $$ = GreaterExpressionSemanticAction($1, $3); }
+	| ExpressionRelacional LESS_EQUAL ExpressionAditiva                  { $$ = LessEqualExpressionSemanticAction($1, $3); }
+	| ExpressionRelacional GREATER_EQUAL ExpressionAditiva               { $$ = GreaterEqualExpressionSemanticAction($1, $3); }
 	;
 
-ExpresionAditiva: ExpresionMultiplicativa                              { $$ = $1; }
-	| ExpresionAditiva ADD ExpresionMultiplicativa                     { $$ = AdditionExpressionSemanticAction($1, $3); }
-	| ExpresionAditiva SUB ExpresionMultiplicativa                     { $$ = SubtractionExpressionSemanticAction($1, $3); }
+ExpressionAditiva: ExpressionMultiplicativa                              { $$ = $1; }
+	| ExpressionAditiva ADD ExpressionMultiplicativa                     { $$ = AdditionExpressionSemanticAction($1, $3); }
+	| ExpressionAditiva SUB ExpressionMultiplicativa                     { $$ = SubtractionExpressionSemanticAction($1, $3); }
 	;
 
-ExpresionMultiplicativa: ExpresionUnaria                              { $$ = $1; }
-| ExpresionMultiplicativa ExpresionMultiplicativaSufijo               { $$ = $2; $2->leftExpression = $1; }
+ExpressionMultiplicativa: ExpressionUnaria                              { $$ = $1; }
+| ExpressionMultiplicativa ExpressionMultiplicativaSuffix               { $$ = $2; $2->leftExpression = $1; }
 ;
 
-ExpresionMultiplicativaSufijo: MUL ExpresionUnaria                    { $$ = MultiplicationExpressionSemanticAction(NULL, $2); }
-    | DIV ExpresionUnaria                                             { $$ = DivisionExpressionSemanticAction(NULL, $2); }
-    | MOD ExpresionUnaria                                             { $$ = ModuloExpressionSemanticAction(NULL, $2); }
+ExpressionMultiplicativaSuffix: MUL ExpressionUnaria                    { $$ = MultiplicationExpressionSemanticAction(NULL, $2); }
+    | DIV ExpressionUnaria                                             { $$ = DivisionExpressionSemanticAction(NULL, $2); }
+    | MOD ExpressionUnaria                                             { $$ = ModuloExpressionSemanticAction(NULL, $2); }
     ;
 
-ExpresionUnaria: ExpresionPrimaria                                     { $$ = $1; }
-	| NOT ExpresionUnaria                                              { $$ = NotExpressionSemanticAction($2); }
+ExpressionUnaria: ExpressionPrimaria                                     { $$ = $1; }
+	| NOT ExpressionUnaria                                              { $$ = NotExpressionSemanticAction($2); }
 	;
 
-ExpresionPrimaria: Identificador IdentificadorSufijo                   { $$ = IdentifierExpressionSemanticAction($1, $2); }
-	| Constante                                                        { $$ = ConstantExpressionSemanticAction($1); }
-	| OPEN_PARENTHESIS Expresion CLOSE_PARENTHESIS                     { $$ = ParenthesisExpressionSemanticAction($2); }
+ExpressionPrimaria: Identifier IdentifierSuffix                   { $$ = IdentifierExpressionSemanticAction($1, $2); }
+	| Constant                                                        { $$ = ConstantExpressionSemanticAction($1); }
+	| OPEN_PARENTHESIS Expression CLOSE_PARENTHESIS                     { $$ = ParenthesisExpressionSemanticAction($2); }
 	;
 
-IdentificadorSufijo: OPEN_PARENTHESIS Argumentos CLOSE_PARENTHESIS     { $$ = FunctionCallIdentificadorSufijoSemanticAction($2); }
-	| OPEN_BRACKET Expresion CLOSE_BRACKET                             { $$ = ArrayAccessIdentificadorSufijoSemanticAction($2); }
-	| %empty                                                           { $$ = EmptyIdentificadorSufijoSemanticAction(); }
+IdentifierSuffix: OPEN_PARENTHESIS Arguments CLOSE_PARENTHESIS     { $$ = FunctionCallIdentifierSuffixSemanticAction($2); }
+	| OPEN_BRACKET Expression CLOSE_BRACKET                             { $$ = ArrayAccessIdentifierSuffixSemanticAction($2); }
+	| %empty                                                           { $$ = EmptyIdentifierSuffixSemanticAction(); }
 	;
 
-ExpresionLvalue: Identificador                                         { $$ = SimpleExpresionLvalueSemanticAction($1); }
-	| Identificador OPEN_BRACKET Expresion CLOSE_BRACKET               { $$ = ArrayExpresionLvalueSemanticAction($1, $3); }
+ExpressionLvalue: Identifier                                         { $$ = SimpleExpressionLvalueSemanticAction($1); }
+	| Identifier OPEN_BRACKET Expression CLOSE_BRACKET               { $$ = ArrayExpressionLvalueSemanticAction($1, $3); }
 	;
 
-Argumentos: ListaArgumentos                                            { $$ = $1; }
+Arguments: ListArguments                                            { $$ = $1; }
 	| %empty                                                           { $$ = NULL; }
 	;
 
-ListaArgumentos: Expresion                                             { $$ = SingleListaArgumentosSemanticAction($1); }
-	| ListaArgumentos COMMA Expresion                                  { $$ = AppendListaArgumentosSemanticAction($1, $3); }
+ListArguments: Expression                                             { $$ = SingleListArgumentsSemanticAction($1); }
+	| ListArguments COMMA Expression                                  { $$ = AppendListArgumentsSemanticAction($1, $3); }
 	;
 
-Constante: ConstanteEntera                                             { $$ = IntegerConstanteSemanticAction($1); }
-	| ConstanteCaracter                                                { $$ = CharacterConstanteSemanticAction($1); }
+Constant: ConstantInteger                                             { $$ = IntegerConstantSemanticAction($1); }
+	| ConstantCharacter                                                { $$ = CharacterConstantSemanticAction($1); }
 	;
 
-ConstanteEntera: INTEGER                                               { $$ = ConstanteEnteraSemanticAction($1); }
+ConstantInteger: INTEGER                                               { $$ = ConstantIntegerSemanticAction($1); }
 	;
 
-ConstanteCaracter: CHARACTER                                           { $$ = ConstanteCaracterSemanticAction($1); }
+ConstantCharacter: CHARACTER                                           { $$ = ConstantCharacterSemanticAction($1); }
 	;
 
-Identificador: IDENTIFIER                                              { $$ = IdentificadorSemanticAction($1); }
+Identifier: IDENTIFIER                                              { $$ = IdentifierSemanticAction($1); }
 	;
 
 %%

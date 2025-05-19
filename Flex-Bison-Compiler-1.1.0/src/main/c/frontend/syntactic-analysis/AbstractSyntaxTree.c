@@ -16,68 +16,68 @@ void shutdownAbstractSyntaxTreeModule() {
 
 /** PUBLIC FUNCTIONS */
 
-void releaseBloque(Bloque* bloque) {
+void releaseBlock(Block* block) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (bloque != NULL) {
-        releaseSentencias(bloque->sentencias);
-        free(bloque);
+    if (block != NULL) {
+        releaseStatements(block->statements);
+        free(block);
     }
 }
 
-void releaseConstante(Constante* constante) {
+void releaseConstant(Constant* constant) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (constante != NULL) {
-        if (constante->type == 0) {
-            releaseConstanteEntera(constante->entera);
+    if (constant != NULL) {
+        if (constant->type == 0) {
+            releaseConstantInteger(constant->integer);
         } else {
-            releaseConstanteCaracter(constante->caracter);
+            releaseConstantCharacter(constant->character);
         }
-        free(constante);
+        free(constant);
     }
 }
 
-void releaseConstanteCaracter(ConstanteCaracter* constanteCaracter) {
+void releaseConstantCharacter(ConstantCharacter* constantCharacter) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (constanteCaracter != NULL) {
-        free(constanteCaracter);
+    if (constantCharacter != NULL) {
+        free(constantCharacter);
     }
 }
 
-void releaseConstanteEntera(ConstanteEntera* constanteEntera) {
+void releaseConstantInteger(ConstantInteger* constantInteger) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (constanteEntera != NULL) {
-        free(constanteEntera);
+    if (constantInteger != NULL) {
+        free(constantInteger);
     }
 }
 
-void releaseDeclaracion(Declaracion* declaracion) {
+void releaseDeclaration(Declaration* declaration) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (declaracion != NULL) {
-        releaseIdentificador(declaracion->identifier);
-        releaseDeclaracionSufijo(declaracion->declaracionSufijo);
-        free(declaracion);
+    if (declaration != NULL) {
+        releaseIdentifier(declaration->identifier);
+        releaseDeclarationSuffix(declaration->declarationSuffix);
+        free(declaration);
     }
 }
 
-void releaseDeclaracionLista(DeclaracionLista* declaracionLista) {
+void releaseDeclarationList(DeclarationList* declarationList) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (declaracionLista != NULL) {
-        releaseDeclaracion(declaracionLista->declaracion);
-        releaseDeclaracionLista(declaracionLista->next);
-        free(declaracionLista);
+    if (declarationList != NULL) {
+        releaseDeclaration(declarationList->declaration);
+        releaseDeclarationList(declarationList->next);
+        free(declarationList);
     }
 }
 
-void releaseDeclaracionSufijo(DeclaracionSufijo* declaracionSufijo) {
+void releaseDeclarationSuffix(DeclarationSuffix* declarationSuffix) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (declaracionSufijo != NULL) {
-        if (declaracionSufijo->type == DECLARACION_SUFIJO_VARIABLE) {
-            releaseVariableSufijo(declaracionSufijo->variableSufijo);
+    if (declarationSuffix != NULL) {
+        if (declarationSuffix->type == VARIABLE_SUFFIX_DECLARATION) {
+            releaseVariableSuffix(declarationSuffix->variableSuffix);
         } else {
-            releaseParametros(declaracionSufijo->parametros);
-            releaseFuncionSufijo(declaracionSufijo->funcionSufijo);
+            releaseParameters(declarationSuffix->parameters);
+            releaseFunctionSuffix(declarationSuffix->functionSuffix);
         }
-        free(declaracionSufijo);
+        free(declarationSuffix);
     }
 }
 
@@ -107,95 +107,95 @@ void releaseExpression(Expression* expression) {
                 releaseExpression(expression->singleExpression);
                 break;
             case EXPRESSION_IDENTIFIER:
-                releaseIdentificador(expression->identifier);
+                releaseIdentifier(expression->identifier);
                 break;
             case EXPRESSION_CONSTANT:
-                releaseConstante(expression->constant);
+                releaseConstant(expression->constant);
                 break;
             case EXPRESSION_ARRAY_ACCESS:
-                releaseIdentificador(expression->identifierArray);
+                releaseIdentifier(expression->identifierArray);
                 releaseExpression(expression->indexExpression);
                 break;
             case EXPRESSION_FUNCTION_CALL:
-                releaseIdentificador(expression->identifierFunc);
-                releaseListaArgumentos(expression->arguments);
+                releaseIdentifier(expression->identifierFunc);
+                releaseListArguments(expression->arguments);
                 break;
         }
         free(expression);
     }
 }
 
-void releaseFuncionSufijo(FuncionSufijo* funcionSufijo) {
+void releaseFunctionSuffix(FunctionSuffix* functionSuffix) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (funcionSufijo != NULL) {
-        if (funcionSufijo->type == 1) {
-            releaseBloque(funcionSufijo->bloque);
+    if (functionSuffix != NULL) {
+        if (functionSuffix->type == 1) {
+            releaseBlock(functionSuffix->block);
         }
-        free(funcionSufijo);
+        free(functionSuffix);
     }
 }
 
-void releaseIdentificador(Identificador* identificador) {
+void releaseIdentifier(Identifier* identifier) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (identificador != NULL) {
-        free(identificador->name);
-        free(identificador);
+    if (identifier != NULL) {
+        free(identifier->name);
+        free(identifier);
     }
 }
 
-void releaseIdentificadorSufijo(IdentificadorSufijo* identificadorSufijo) {
+void releaseIdentifierSuffix(IdentifierSuffix* identifierSuffix) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (identificadorSufijo != NULL) {
-        if (identificadorSufijo->type == IDENTIFICADOR_SUFIJO_FUNCTION_CALL) {
-            releaseListaArgumentos(identificadorSufijo->arguments);
-        } else if (identificadorSufijo->type == IDENTIFICADOR_SUFIJO_ARRAY_ACCESS) {
-            releaseExpression(identificadorSufijo->indexExpression);
+    if (identifierSuffix != NULL) {
+        if (identifierSuffix->type == IDENTIFIER_SUFFIX_FUNCTION_CALL) {
+            releaseListArguments(identifierSuffix->arguments);
+        } else if (identifierSuffix->type == IDENTIFIER_SUFFIX_ARRAY_ACCESS) {
+            releaseExpression(identifierSuffix->indexExpression);
         }
-        free(identificadorSufijo);
+        free(identifierSuffix);
     }
 }
 
-void releaseListaArgumentos(ListaArgumentos* listaArgumentos) {
+void releaseListArguments(ListArguments* listArguments) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (listaArgumentos != NULL) {
-        releaseExpression(listaArgumentos->expression);
-        releaseListaArgumentos(listaArgumentos->next);
-        free(listaArgumentos);
+    if (listArguments != NULL) {
+        releaseExpression(listArguments->expression);
+        releaseListArguments(listArguments->next);
+        free(listArguments);
     }
 }
 
-void releaseParametro(Parametro* parametro) {
+void releaseParameter(Parameter* parameter) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (parametro != NULL) {
-        releaseIdentificador(parametro->identifier);
-        releaseParametroArray(parametro->array);
-        free(parametro);
+    if (parameter != NULL) {
+        releaseIdentifier(parameter->identifier);
+        releaseParameterArray(parameter->array);
+        free(parameter);
     }
 }
 
-void releaseParametroArray(ParametroArray* parametroArray) {
+void releaseParameterArray(ParameterArray* parameterArray) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (parametroArray != NULL) {
-        free(parametroArray);
+    if (parameterArray != NULL) {
+        free(parameterArray);
     }
 }
 
-void releaseParametroLista(ParametroLista* parametroLista) {
+void releaseParameterList(ParameterList* parameterList) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (parametroLista != NULL) {
-        releaseParametro(parametroLista->parametro);
-        releaseParametroLista(parametroLista->next);
-        free(parametroLista);
+    if (parameterList != NULL) {
+        releaseParameter(parameterList->parameter);
+        releaseParameterList(parameterList->next);
+        free(parameterList);
     }
 }
 
-void releaseParametros(Parametros* parametros) {
+void releaseParameters(Parameters* parameters) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (parametros != NULL) {
-        if (parametros->type == 1) {
-            releaseParametroLista(parametros->lista);
+    if (parameters != NULL) {
+        if (parameters->type == 1) {
+            releaseParameterList(parameters->list);
         }
-        free(parametros);
+        free(parameters);
     }
 }
 
@@ -203,118 +203,118 @@ void releaseProgram(Program* program) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
     if (program != NULL) {
         if (program->type == PROGRAM_DECLARATIONS) {
-            releaseDeclaracionLista(program->declaracionLista);
+            releaseDeclarationList(program->declarationList);
         }
         free(program);
     }
 }
 
-void releaseSentencia(Sentencia* sentencia) {
+void releaseStatement(Statement* statement) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (sentencia != NULL) {
-        switch (sentencia->type) {
-            case SENTENCIA_DECLARATION:
-                releaseIdentificador(sentencia->identifier);
-                releaseVariableSufijo(sentencia->variableSufijo);
+    if (statement != NULL) {
+        switch (statement->type) {
+            case STATEMENT_DECLARATION:
+                releaseIdentifier(statement->identifier);
+                releaseVariableSuffix(statement->variableSuffix);
                 break;
-            case SENTENCIA_IF:
-                releaseSentenciaIf(sentencia->sentenciaIf);
+            case STATEMENT_IF:
+                releaseStatementIf(statement->statementIf);
                 break;
-            case SENTENCIA_WHILE:
-                releaseSentenciaWhile(sentencia->sentenciaWhile);
+            case STATEMENT_WHILE:
+                releaseStatementWhile(statement->statementWhile);
                 break;
-            case SENTENCIA_FOR:
-                releaseSentenciaFor(sentencia->sentenciaFor);
+            case STATEMENT_FOR:
+                releaseStatementFor(statement->statementFor);
                 break;
-            case SENTENCIA_RETURN:
-                releaseSentenciaReturn(sentencia->sentenciaReturn);
+            case STATEMENT_RETURN:
+                releaseStatementReturn(statement->statementReturn);
                 break;
-            case SENTENCIA_EXPRESSION:
-                releaseSentenciaExpresion(sentencia->sentenciaExpresion);
+            case STATEMENT_EXPRESSION:
+                releaseStatementExpression(statement->statementExpression);
                 break;
-            case SENTENCIA_BLOQUE:
-                releaseBloque(sentencia->bloque);
+            case STATEMENT_BLOCK:
+                releaseBlock(statement->block);
                 break;
-            case SENTENCIA_EMPTY:
+            case STATEMENT_EMPTY:
                 break;
         }
-        free(sentencia);
+        free(statement);
     }
 }
 
-void releaseSentencias(Sentencias* sentencias) {
+void releaseStatements(Statements* statements) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (sentencias != NULL) {
-        releaseSentencia(sentencias->sentencia);
-        releaseSentencias(sentencias->next);
-        free(sentencias);
+    if (statements != NULL) {
+        releaseStatement(statements->statement);
+        releaseStatements(statements->next);
+        free(statements);
     }
 }
 
-void releaseSentenciaExpresion(SentenciaExpresion* sentenciaExpresion) {
+void releaseStatementExpression(StatementExpression* statementExpression) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (sentenciaExpresion != NULL) {
-        releaseExpression(sentenciaExpresion->expression);
-        free(sentenciaExpresion);
+    if (statementExpression != NULL) {
+        releaseExpression(statementExpression->expression);
+        free(statementExpression);
     }
 }
 
-void releaseSentenciaFor(SentenciaFor* sentenciaFor) {
+void releaseStatementFor(StatementFor* statementFor) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (sentenciaFor != NULL) {
-        if (sentenciaFor->hasInit) {
-            releaseExpression(sentenciaFor->init);
+    if (statementFor != NULL) {
+        if (statementFor->hasInit) {
+            releaseExpression(statementFor->init);
         }
-        if (sentenciaFor->hasCondition) {
-            releaseExpression(sentenciaFor->condition);
+        if (statementFor->hasCondition) {
+            releaseExpression(statementFor->condition);
         }
-        if (sentenciaFor->hasUpdate) {
-            releaseExpression(sentenciaFor->update);
+        if (statementFor->hasUpdate) {
+            releaseExpression(statementFor->update);
         }
-        releaseBloque(sentenciaFor->bloque);
-        free(sentenciaFor);
+        releaseBlock(statementFor->block);
+        free(statementFor);
     }
 }
 
-void releaseSentenciaIf(SentenciaIf* sentenciaIf) {
+void releaseStatementIf(StatementIf* statementIf) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (sentenciaIf != NULL) {
-        releaseExpression(sentenciaIf->condition);
-        releaseBloque(sentenciaIf->thenBloque);
-        if (sentenciaIf->hasElse) {
-            releaseBloque(sentenciaIf->elseBloque);
+    if (statementIf != NULL) {
+        releaseExpression(statementIf->condition);
+        releaseBlock(statementIf->thenBlock);
+        if (statementIf->hasElse) {
+            releaseBlock(statementIf->elseBlock);
         }
-        free(sentenciaIf);
+        free(statementIf);
     }
 }
 
-void releaseSentenciaReturn(SentenciaReturn* sentenciaReturn) {
+void releaseStatementReturn(StatementReturn* statementReturn) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (sentenciaReturn != NULL) {
-        if (sentenciaReturn->hasExpression) {
-            releaseExpression(sentenciaReturn->expression);
+    if (statementReturn != NULL) {
+        if (statementReturn->hasExpression) {
+            releaseExpression(statementReturn->expression);
         }
-        free(sentenciaReturn);
+        free(statementReturn);
     }
 }
 
-void releaseSentenciaWhile(SentenciaWhile* sentenciaWhile) {
+void releaseStatementWhile(StatementWhile* statementWhile) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (sentenciaWhile != NULL) {
-        releaseExpression(sentenciaWhile->condition);
-        releaseBloque(sentenciaWhile->bloque);
-        free(sentenciaWhile);
+    if (statementWhile != NULL) {
+        releaseExpression(statementWhile->condition);
+        releaseBlock(statementWhile->block);
+        free(statementWhile);
     }
 }
 
-void releaseVariableSufijo(VariableSufijo* variableSufijo) {
+void releaseVariableSuffix(VariableSuffix* variableSuffix) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-    if (variableSufijo != NULL) {
-        if (variableSufijo->type == VARIABLE_SUFIJO_ASSIGNMENT) {
-            releaseExpression(variableSufijo->expression);
-        } else if (variableSufijo->type == VARIABLE_SUFIJO_ARRAY) {
-            releaseConstanteEntera(variableSufijo->arraySize);
+    if (variableSuffix != NULL) {
+        if (variableSuffix->type == VARIABLE_SUFFIX_ASSIGNMENT) {
+            releaseExpression(variableSuffix->expression);
+        } else if (variableSuffix->type == VARIABLE_SUFFIX_ARRAY) {
+            releaseConstantInteger(variableSuffix->arraySize);
         }
-        free(variableSufijo);
+        free(variableSuffix);
     }
 }
