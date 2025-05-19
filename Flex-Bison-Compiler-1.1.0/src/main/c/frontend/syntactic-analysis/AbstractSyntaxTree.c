@@ -39,7 +39,7 @@ void releaseConstant(Constant* c) {
 void releaseIdentifier(Identifier* id) {
     if (!id) return;
     logDebugging(_logger, "Freeing: Identifier");
-    free(id->name);
+    
     free(id);
 }
 

@@ -83,18 +83,14 @@ typedef enum {
 
 typedef struct Block Block;
 typedef struct Constant Constant;
-typedef struct ConstantCharacter ConstantCharacter;
-typedef struct ConstantInteger ConstantInteger;
 typedef struct Declaration Declaration;
 typedef struct DeclarationList DeclarationList;
 typedef struct DeclarationSuffix DeclarationSuffix;
 typedef struct Expression Expression;
 typedef struct FunctionSuffix FunctionSuffix;
-typedef struct Identifier Identifier;
 typedef struct IdentifierSuffix IdentifierSuffix;
 typedef struct ListArguments ListArguments;
 typedef struct Parameter Parameter;
-typedef struct ParameterArray ParameterArray;
 typedef struct ParameterList ParameterList;
 typedef struct Parameters Parameters;
 typedef struct Program Program;
@@ -107,24 +103,20 @@ typedef struct StatementReturn StatementReturn;
 typedef struct StatementWhile StatementWhile;
 typedef struct VariableSuffix VariableSuffix;
 
-struct ConstantInteger {
-    int value;
-};
+typedef int* ConstantInteger;
+typedef char* ConstantCharacter;
+typedef char* Identifier;
 
-struct ConstantCharacter {
-    char value;
-};
+typedef struct ParameterArrayStruct {
+    ParameterArrayType type;
+} *ParameterArray;
 
 struct Constant {
     int type;
     union {
-        ConstantInteger* integer;
-        ConstantCharacter* character;
+        ConstantInteger integer;
+        ConstantCharacter character;
     };
-};
-
-struct Identifier {
-    char* name;
 };
 
 struct Expression {
@@ -132,7 +124,7 @@ struct Expression {
     union {
         struct { Expression* leftExpression; Expression* rightExpression; };
         Expression* singleExpression;
-        Identifier* identifier;
+        Identifier identifier;
         Constant* constant;
         struct { Identifier* identifierArray; Expression* indexExpression; };
         struct { Identifier* identifierFunc; ListArguments* arguments; };
@@ -156,18 +148,14 @@ struct VariableSuffix {
     VariableSuffixType type;
     union {
         Expression* expression;
-        ConstantInteger* arraySize;
+        ConstantInteger arraySize;
     };
-};
-
-struct ParameterArray {
-    ParameterArrayType type;
 };
 
 struct Parameter {
     DataType type;
-    Identifier* identifier;
-    ParameterArray* array;
+    Identifier identifier;
+    ParameterArray array;
 };
 
 struct ParameterList {
@@ -198,7 +186,7 @@ struct DeclarationSuffix {
 
 struct Declaration {
     DataType dataType;
-    Identifier* identifier;
+    Identifier identifier;
     DeclarationSuffix* declarationSuffix;
     DeclarationType declarationType;
 };
@@ -244,7 +232,7 @@ struct Statement {
     union {
         struct {
             DataType dataType;
-            Identifier* identifier;
+            Identifier identifier;
             VariableSuffix* variableSuffix;
         };
         StatementIf* statementIf;

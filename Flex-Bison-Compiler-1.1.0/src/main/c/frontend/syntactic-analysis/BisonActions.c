@@ -159,7 +159,7 @@ VariableSuffix* ArrayVariableSuffixSemanticAction(int size) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     VariableSuffix* suffix = calloc(1, sizeof(VariableSuffix));
     ConstantInteger* arraySize = calloc(1, sizeof(ConstantInteger));
-    arraySize->value = size;
+    arraySize = size;
     suffix->arraySize = arraySize;
     suffix->type = VARIABLE_SUFFIX_ARRAY;
     return suffix;
@@ -217,14 +217,14 @@ Parameter* ParametroSemanticAction(DataType type, Identifier* identifier, Parame
 ParameterArray* ArrayParametroArraySemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ParameterArray* array = calloc(1, sizeof(ParameterArray));
-    array->type = PARAMETER_ARRAY_BRACKETS;
+    array = PARAMETER_ARRAY_BRACKETS;
     return array;
 }
 
 ParameterArray* EmptyParametroArraySemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ParameterArray* array = calloc(1, sizeof(ParameterArray));
-    array->type = PARAMETER_ARRAY_NONE;
+    array = PARAMETER_ARRAY_NONE;
     return array;
 }
 
@@ -624,14 +624,14 @@ Constant* CharacterConstantSemanticAction(ConstantCharacter* constant) {
 ConstantInteger* ConstantIntegerSemanticAction(int value) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ConstantInteger* constant = calloc(1, sizeof(ConstantInteger));
-    constant->value = value;
+    constant = value;
     return constant;
 }
 
 ConstantCharacter* ConstantCharacterSemanticAction(char value) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ConstantCharacter* constant = calloc(1, sizeof(ConstantCharacter));
-    constant->value = value;
+    constant = value;
     return constant;
 }
 
@@ -639,6 +639,6 @@ ConstantCharacter* ConstantCharacterSemanticAction(char value) {
 Identifier* IdentifierSemanticAction(char* name) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Identifier* identifier = calloc(1, sizeof(Identifier));
-    identifier->name = name;
+    
     return identifier;
 }
