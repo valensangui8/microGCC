@@ -1,0 +1,6 @@
+int main() {
+    
+    int 2number;
+    
+    return 0;
+}

@@ -1,0 +1,26 @@
+int main() {
+    int temperature = 28;
+    int clothing_type;
+    
+    /* Determine appropriate clothing based on temperature */
+    if (temperature < 0) {
+        clothing_type = 1;  /* Very warm clothing */
+    } else {
+        if (temperature >= 0 && temperature < 10) {
+            clothing_type = 2;  /* Warm coat */
+        } 
+        else {
+            clothing_type = 5;  /* Summer clothing */
+        }
+    }
+    
+    /* Check if temperature is even or odd */
+    int is_even;
+    if (temperature % 2 == 0) {
+        is_even = 1;  /* True, temperature is even */
+    } else {
+        is_even = 0;  /* False, temperature is odd */
+    }
+    
+    return 0;
+}
