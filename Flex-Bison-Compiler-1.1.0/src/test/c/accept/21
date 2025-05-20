@@ -1,0 +1,14 @@
+int main() {
+    int sum = 0;
+    int squares_sum = 0;
+    
+    /* Calculate sum of numbers and sum of squares */
+    
+    int i;
+    for (i = 1; i <= 10; i = i + 1) {
+        sum = sum + i;
+        squares_sum = squares_sum + i * i;
+    }
+    
+    return 0;
+}

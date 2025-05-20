@@ -1,0 +1,46 @@
+/* Function that combines assignments, conditionals, and loops with restricted syntax */
+int analyzeNumbers(int start, int end, int divisor) {
+    int sum = 0;
+    int count = 0;
+    int should_continue = 1; /* Flag for controlling loop execution */
+    
+    int i;
+    for (i = start; i <= end && should_continue == 1; i = i + 1) {
+
+        if (i % divisor == 0) {
+            sum = sum + i;
+            count = count + 1;
+        }
+        
+        if (sum > 100) {
+            should_continue = 0;  
+        }
+    }
+    
+    int sum_category;
+    if (sum == 0) {
+        sum_category = 0;  /* No divisible numbers found */
+    } else {
+        if (sum < 50) {
+            sum_category = 1;  /* Low sum */
+        } else {
+            if (sum >= 50 && sum <= 100) {
+                sum_category = 2;  /* Medium sum */
+            } else {
+                sum_category = 3;  /* High sum */
+            }
+        }
+    }
+    
+    return count;  /* Return the number of divisible numbers found */
+}
+
+int main() {
+    int start = 10;
+    int end = 30;
+    int divisor = 3;
+    
+    int divisible_count = analyzeNumbers(start, end, divisor);
+    
+    return 0;
+}

@@ -1,0 +1,20 @@
+
+int var;
+
+int main() {
+    
+    int age;
+    int actual_year;
+    int birth_year;
+    int days_liven;
+    int hours_slept;
+    
+    age = 25;
+    actual_year = 2025;
+    birth_year = actual_year - age;
+    days_liven = age * 365; 
+    hours_slept = days_liven * 8;
+    var = 10;
+    
+    return 0;
+}

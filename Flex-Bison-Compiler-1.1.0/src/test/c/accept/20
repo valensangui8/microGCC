@@ -1,0 +1,22 @@
+int main() {
+    int counter = 1;
+    int sum = 0;
+    int limit = 10;
+    
+    /* Calculate the sum of the first 'limit' natural numbers */
+    while (counter <= limit) {
+        sum = sum + counter;  
+        counter = counter + 1;  /* Increment counter */
+    }
+    
+    counter = 10;
+    int factorial = 1;
+    
+    /* Calculate factorial of 10 */
+    while (counter >= 1) {
+        factorial = factorial * counter;  
+        counter = counter - 1;  /* Decrement counter */
+    }
+    
+    return 0;
+}
