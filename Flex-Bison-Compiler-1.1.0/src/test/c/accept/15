@@ -1,0 +1,17 @@
+int arr(int ar[]){
+        char format[3];
+        format[0] = '%';
+        format[1] = 'd';
+        format[2] = '\0';
+
+        printf(format, ar[1]);
+
+        ar[1] = 200;
+}
+
+
+int main(){
+
+        int test[10];
+        arr(test);
+}
