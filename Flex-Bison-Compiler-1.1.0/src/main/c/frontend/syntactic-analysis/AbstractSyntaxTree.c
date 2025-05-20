@@ -234,3 +234,9 @@ void freeConstant(Constant* node) {
     else free(node->character);
     free(node);
 }
+
+void freeIdentifier(Identifier* identifier) {
+    if (identifier == NULL) return;
+    free(*identifier);
+    free(identifier);
+}
