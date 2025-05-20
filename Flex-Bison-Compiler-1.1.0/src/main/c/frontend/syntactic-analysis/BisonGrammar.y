@@ -30,7 +30,7 @@
 	IdentifierSuffix* identifierSuffix;
 	ListArguments* listArguments;
 	Parameter* parameter;
-	ParameterArray* parameterArray;
+	ParameterArray * parameterArray;
 	ParameterList* parameterList;
 	Parameters* parameters;
 	Program* program;
@@ -43,6 +43,25 @@
 	StatementWhile* statementWhile;
 	VariableSuffix* variableSuffix;
 }
+
+
+/**
+ * Destructors. This functions are executed after the parsing ends, so if the
+ * AST must be used in the following phases of the compiler you shouldn't used
+ * this approach. To use this mechanism, the AST must be translated into
+ * another structure.
+ *
+ * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
+ */
+/*
+%destructor { releaseConstant($$); } <constant>
+%destructor { releaseExpression($$); } <expression>
+%destructor { releaseFactor($$); } <factor>
+%destructor { releaseProgram($$); } <program>
+*/
+
+
+
 
 /** Terminals. */
 %token <integer> INTEGER
@@ -99,7 +118,6 @@
 %type <expression> ExpressionIgualdad
 %type <expression> ExpressionLvalue
 %type <expression> ExpressionMultiplicativa
-%type <expression> ExpressionMultiplicativaSuffix
 %type <expression> ExpressionOpt
 %type <expression> ExpressionOr
 %type <expression> ExpressionPrimaria
@@ -162,7 +180,7 @@ ParameterList: Parameter                                              { $$ = Sin
 	| Parameter COMMA ParameterList                                   { $$ = AppendParametroListSemanticAction($1, $3); }
 	;
 
-Parameter: Type Identifier ParameterArray                           { $$ = ParametroSemanticAction($1, $2, $3); }
+Parameter: Type Identifier ParameterArray                           { $$ = ParameterSemanticAction($1, $2, $3); }
 	;
 
 ParameterArray: OPEN_BRACKET CLOSE_BRACKET                             { $$ = ArrayParametroArraySemanticAction(); }
@@ -242,14 +260,15 @@ ExpressionAditiva: ExpressionMultiplicativa                              { $$ = 
 	| ExpressionAditiva SUB ExpressionMultiplicativa                     { $$ = SubtractionExpressionSemanticAction($1, $3); }
 	;
 
-ExpressionMultiplicativa: ExpressionUnaria                              { $$ = $1; }
-| ExpressionMultiplicativa ExpressionMultiplicativaSuffix               { $$ = $2; $2->leftExpression = $1; }
-;
 
-ExpressionMultiplicativaSuffix: MUL ExpressionUnaria                    { $$ = MultiplicationExpressionSemanticAction(NULL, $2); }
-    | DIV ExpressionUnaria                                             { $$ = DivisionExpressionSemanticAction(NULL, $2); }
-    | MOD ExpressionUnaria                                             { $$ = ModuloExpressionSemanticAction(NULL, $2); }
+ExpressionMultiplicativa
+    : ExpressionMultiplicativa MUL ExpressionUnaria   { $$ = MultiplicationExpressionSemanticAction($1, $3); }
+    | ExpressionMultiplicativa DIV ExpressionUnaria   { $$ = DivisionExpressionSemanticAction($1, $3); }
+    | ExpressionMultiplicativa MOD ExpressionUnaria   { $$ = ModuloExpressionSemanticAction($1, $3); }
+    | ExpressionUnaria                                { $$ = $1; }
     ;
+
+
 
 ExpressionUnaria: ExpressionPrimaria                                     { $$ = $1; }
 	| NOT ExpressionUnaria                                              { $$ = NotExpressionSemanticAction($2); }
@@ -287,7 +306,7 @@ ConstantInteger: INTEGER                                               { $$ = Co
 ConstantCharacter: CHARACTER                                           { $$ = ConstantCharacterSemanticAction($1); }
 	;
 
-Identifier: IDENTIFIER                                              { $$ = IdentifierSemanticAction($1); }
+Identifier: IDENTIFIER                                                  { $$ = IdentifierSemanticAction($1); }
 	;
 
 %%

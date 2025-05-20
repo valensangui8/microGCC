@@ -24,6 +24,9 @@ Program* DeclarationListProgramSemanticAction(CompilerState* compilerState, Decl
 Program* EmptyProgramSemanticAction(CompilerState* compilerState);
 
 // Declaration actions
+
+Declaration* RegularDeclarationSemanticAction(DataType type, Identifier * identifier, DeclarationSuffix* declarationSuffix);
+Declaration* ExternDeclarationSemanticAction(DataType type, Identifier * identifier, DeclarationSuffix* declarationSuffix);
 DeclarationList* SingleDeclarationListSemanticAction(Declaration* declaration);
 DeclarationList* AppendDeclarationListSemanticAction(DeclarationList* list, Declaration* declaration);
 DeclarationSuffix* VariableDeclarationSuffixSemanticAction(VariableSuffix* variableSuffix);
@@ -35,6 +38,7 @@ VariableSuffix* AssignmentVariableSuffixSemanticAction(Expression* expression);
 VariableSuffix* ArrayVariableSuffixSemanticAction(int size);
 
 // Parameter actions
+Parameter* ParameterSemanticAction(DataType type, Identifier* identifier, ParameterArray * array) ;
 Parameters* VoidParametrosSemanticAction();
 Parameters* ListParametrosSemanticAction(ParameterList* list);
 Parameters* EmptyParametrosSemanticAction();
@@ -47,6 +51,7 @@ ParameterArray* EmptyParametroArraySemanticAction();
 Block* BlockSemanticAction(Statements* statements);
 Statements* AppendStatementsSemanticAction(Statement* statement, Statements* statements);
 Statements* EmptyStatementsSemanticAction();
+Statement* DeclarationStatementSemanticAction(DataType type, Identifier* identifier, VariableSuffix* variableSuffix);
 Statement* IfStatementSemanticAction(StatementIf* statementIf);
 Statement* WhileStatementSemanticAction(StatementWhile* statementWhile);
 Statement* ForStatementSemanticAction(StatementFor* statementFor);

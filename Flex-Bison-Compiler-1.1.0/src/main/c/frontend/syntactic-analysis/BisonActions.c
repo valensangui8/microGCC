@@ -1,5 +1,5 @@
 #include "BisonActions.h"
-
+#include <string.h>
 /* MODULE INTERNAL STATE */
 
 static Logger * _logger = NULL;
@@ -88,7 +88,7 @@ DeclarationList* AppendDeclarationListSemanticAction(DeclarationList* list, Decl
     return list;
 }
 
-Declaration* RegularDeclarationSemanticAction(DataType type, Identifier* identifier, DeclarationSuffix* declarationSuffix) {
+Declaration* RegularDeclarationSemanticAction(DataType type, Identifier * identifier, DeclarationSuffix* declarationSuffix) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Declaration* declaration = calloc(1, sizeof(Declaration));
     declaration->dataType = type;  // No conditional check needed
@@ -98,7 +98,7 @@ Declaration* RegularDeclarationSemanticAction(DataType type, Identifier* identif
     return declaration;
 }
 
-Declaration* ExternDeclarationSemanticAction(DataType type, Identifier* identifier, DeclarationSuffix* declarationSuffix) {
+Declaration* ExternDeclarationSemanticAction(DataType type, Identifier * identifier, DeclarationSuffix* declarationSuffix) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Declaration* declaration = calloc(1, sizeof(Declaration));
     declaration->dataType = type;
@@ -159,7 +159,7 @@ VariableSuffix* ArrayVariableSuffixSemanticAction(int size) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     VariableSuffix* suffix = calloc(1, sizeof(VariableSuffix));
     ConstantInteger* arraySize = calloc(1, sizeof(ConstantInteger));
-    arraySize = size;
+    *arraySize = size;
     suffix->arraySize = arraySize;
     suffix->type = VARIABLE_SUFFIX_ARRAY;
     return suffix;
@@ -205,7 +205,7 @@ ParameterList* AppendParametroListSemanticAction(Parameter* parameter, Parameter
 }
 
 
-Parameter* ParametroSemanticAction(DataType type, Identifier* identifier, ParameterArray* array) {
+Parameter* ParameterSemanticAction(DataType type, Identifier* identifier, ParameterArray * array) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Parameter* parameter = calloc(1, sizeof(Parameter));
     parameter->type = type;
@@ -214,17 +214,17 @@ Parameter* ParametroSemanticAction(DataType type, Identifier* identifier, Parame
     return parameter;
 }
 
-ParameterArray* ArrayParametroArraySemanticAction() {
+ParameterArray * ArrayParametroArraySemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ParameterArray* array = calloc(1, sizeof(ParameterArray));
-    array = PARAMETER_ARRAY_BRACKETS;
+    ParameterArray * array = calloc(1, sizeof(ParameterArray));
+    array->type = PARAMETER_ARRAY_BRACKETS;
     return array;
 }
 
-ParameterArray* EmptyParametroArraySemanticAction() {
+ParameterArray * EmptyParametroArraySemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    ParameterArray* array = calloc(1, sizeof(ParameterArray));
-    array = PARAMETER_ARRAY_NONE;
+    ParameterArray * array = calloc(1, sizeof(ParameterArray));
+    array->type = PARAMETER_ARRAY_NONE;
     return array;
 }
 
@@ -624,14 +624,14 @@ Constant* CharacterConstantSemanticAction(ConstantCharacter* constant) {
 ConstantInteger* ConstantIntegerSemanticAction(int value) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ConstantInteger* constant = calloc(1, sizeof(ConstantInteger));
-    constant = value;
+    *constant = value;
     return constant;
 }
 
 ConstantCharacter* ConstantCharacterSemanticAction(char value) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ConstantCharacter* constant = calloc(1, sizeof(ConstantCharacter));
-    constant = value;
+    *constant = value;
     return constant;
 }
 
@@ -639,6 +639,6 @@ ConstantCharacter* ConstantCharacterSemanticAction(char value) {
 Identifier* IdentifierSemanticAction(char* name) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Identifier* identifier = calloc(1, sizeof(Identifier));
-    
+    *identifier = strdup(name);
     return identifier;
 }

@@ -102,32 +102,42 @@ typedef struct StatementIf StatementIf;
 typedef struct StatementReturn StatementReturn;
 typedef struct StatementWhile StatementWhile;
 typedef struct VariableSuffix VariableSuffix;
+typedef struct ParameterArray ParameterArray;
 
-typedef int* ConstantInteger;
-typedef char* ConstantCharacter;
+typedef int ConstantInteger;
+typedef char ConstantCharacter;
 typedef char* Identifier;
 
-typedef struct ParameterArrayStruct {
+struct ParameterArray {
     ParameterArrayType type;
-} *ParameterArray;
+};
 
 struct Constant {
     int type;
     union {
-        ConstantInteger integer;
-        ConstantCharacter character;
+        ConstantInteger * integer;
+        ConstantCharacter * character;
     };
 };
 
 struct Expression {
     ExpressionType type;
     union {
-        struct { Expression* leftExpression; Expression* rightExpression; };
+        struct {
+            Expression* leftExpression;
+            Expression* rightExpression;
+        };
+
         Expression* singleExpression;
-        Identifier identifier;
+        Identifier* identifier;
         Constant* constant;
-        struct { Identifier* identifierArray; Expression* indexExpression; };
-        struct { Identifier* identifierFunc; ListArguments* arguments; };
+        struct {
+            Identifier* identifierArray;
+            Expression* indexExpression; };
+        struct {
+            Identifier* identifierFunc;
+            ListArguments* arguments;
+        };
     };
 };
 
@@ -148,14 +158,14 @@ struct VariableSuffix {
     VariableSuffixType type;
     union {
         Expression* expression;
-        ConstantInteger arraySize;
+        ConstantInteger * arraySize;
     };
 };
 
 struct Parameter {
     DataType type;
-    Identifier identifier;
-    ParameterArray array;
+    Identifier * identifier;
+    ParameterArray * array;
 };
 
 struct ParameterList {
@@ -186,7 +196,7 @@ struct DeclarationSuffix {
 
 struct Declaration {
     DataType dataType;
-    Identifier identifier;
+    Identifier* identifier;
     DeclarationSuffix* declarationSuffix;
     DeclarationType declarationType;
 };
@@ -232,7 +242,7 @@ struct Statement {
     union {
         struct {
             DataType dataType;
-            Identifier identifier;
+            Identifier* identifier;
             VariableSuffix* variableSuffix;
         };
         StatementIf* statementIf;
@@ -255,9 +265,33 @@ struct Block {
 
 struct Program {
     ProgramType type;
-    union {
-        DeclarationList* declarationList;
-    };
+    DeclarationList* declarationList;
 };
+
+
+
+
+void freeProgram(Program* node);
+void freeBlock(Block* node);
+void freeStatements(Statements* node);
+void freeStatement(Statement* node);
+void freeStatementReturn(StatementReturn* node);
+void freeStatementFor(StatementFor* node);
+void freeStatementWhile(StatementWhile* node);
+void freeStatementIf(StatementIf* node);
+void freeStatementExpression(StatementExpression* node);
+void freeDeclarationList(DeclarationList* node);
+void freeDeclaration(Declaration* node);
+void freeDeclarationSuffix(DeclarationSuffix* node);
+void freeFunctionSuffix(FunctionSuffix* node);
+void freeParameters(Parameters* node);
+void freeParameterList(ParameterList* node);
+void freeParameter(Parameter* node);
+void freeParameterArray(ParameterArray* node);
+void freeVariableSuffix(VariableSuffix* node);
+void freeIdentifierSuffix(IdentifierSuffix* node);
+void freeListArguments(ListArguments* node);
+void freeExpression(Expression* node);
+void freeConstant(Constant* node);
 
 #endif
