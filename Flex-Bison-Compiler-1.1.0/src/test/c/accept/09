@@ -1,0 +1,2 @@
+extern int variable;
+extern int function(char c);

@@ -1,0 +1,20 @@
+extern int function(){
+    return 0;
+}
+extern int a;
+
+int main(int entrada){
+    function();
+    a=10;
+    a = function();
+}
+
+int cuenta();
+
+char cuenta(){
+
+    char string[10];
+    int g = 20;
+    char b = 20;
+    b = 20;
+}

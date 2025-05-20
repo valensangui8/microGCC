@@ -1,0 +1,9 @@
+
+int main(){
+    func();
+    int a = 10;
+
+    while (int a[10] != 1){
+
+    }
+}

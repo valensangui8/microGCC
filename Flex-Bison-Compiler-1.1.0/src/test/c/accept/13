@@ -1,0 +1,17 @@
+char func(char string[]){
+
+    return string;
+}
+
+
+int main(){
+    char string[20];
+    string[0] = 'h';
+    string[1] = 'o';
+    string[2] = 'l';
+    string[3] = 'a';
+    string[4] = '\0';
+
+    func(string);
+
+}
