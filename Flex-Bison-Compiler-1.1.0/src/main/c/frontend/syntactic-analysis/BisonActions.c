@@ -125,18 +125,18 @@ DeclarationSuffix* FunctionDeclarationSuffixSemanticAction(Parameters* parameter
     return suffix;
 }
 
-FunctionSuffix* EmptyFuncionSuffixSemanticAction() {
+FunctionSuffix* EmptyFunctionSuffixSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     FunctionSuffix* suffix = calloc(1, sizeof(FunctionSuffix));
-    suffix->type = 0;
+    suffix->type = SUFFIX_EMPTY;
     return suffix;
 }
 
-FunctionSuffix* BlockFuncionSuffixSemanticAction(Block* block) {
+FunctionSuffix* BlockFunctionSuffixSemanticAction(Block* block) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     FunctionSuffix* suffix = calloc(1, sizeof(FunctionSuffix));
     suffix->block = block;
-    suffix->type = 1;
+    suffix->type = SUFFIX_BLOCK;
     return suffix;
 }
 
@@ -166,29 +166,29 @@ VariableSuffix* ArrayVariableSuffixSemanticAction(int size) {
 }
 
 // Parameter actions
-Parameters* VoidParametrosSemanticAction() {
+Parameters* VoidParametersSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Parameters* parameters = calloc(1, sizeof(Parameters));
-    parameters->type = 0;
+    parameters->type = PARAMS_VOID;
     return parameters;
 }
 
-Parameters* ListParametrosSemanticAction(ParameterList* list) {
+Parameters* ListParametersSemanticAction(ParameterList* list) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Parameters* parameters = calloc(1, sizeof(Parameters));
     parameters->list = list;
-    parameters->type = 1;
+    parameters->type = PARAMS_LIST;
     return parameters;
 }
 
-Parameters* EmptyParametrosSemanticAction() {
+Parameters* EmptyParametersSemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Parameters* parameters = calloc(1, sizeof(Parameters));
-    parameters->type = 2;
+    parameters->type = PARAMS_EMPTY;
     return parameters;
 }
 
-ParameterList* SingleParametroListSemanticAction(Parameter* parameter) {
+ParameterList* SingleParameterListSemanticAction(Parameter* parameter) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ParameterList* list = calloc(1, sizeof(ParameterList));
     list->parameter = parameter;
@@ -196,7 +196,7 @@ ParameterList* SingleParametroListSemanticAction(Parameter* parameter) {
     return list;
 }
 
-ParameterList* AppendParametroListSemanticAction(Parameter* parameter, ParameterList* list) {
+ParameterList* AppendParameterListSemanticAction(Parameter* parameter, ParameterList* list) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ParameterList* newList = calloc(1, sizeof(ParameterList));
     newList->parameter = parameter;
@@ -214,14 +214,14 @@ Parameter* ParameterSemanticAction(DataType type, Identifier* identifier, Parame
     return parameter;
 }
 
-ParameterArray * ArrayParametroArraySemanticAction() {
+ParameterArray * ArrayParameterArraySemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ParameterArray * array = calloc(1, sizeof(ParameterArray));
     array->type = PARAMETER_ARRAY_BRACKETS;
     return array;
 }
 
-ParameterArray * EmptyParametroArraySemanticAction() {
+ParameterArray * EmptyParameterArraySemanticAction() {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     ParameterArray * array = calloc(1, sizeof(ParameterArray));
     array->type = PARAMETER_ARRAY_NONE;
@@ -609,7 +609,7 @@ Constant* IntegerConstantSemanticAction(ConstantInteger* constant) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Constant* result = calloc(1, sizeof(Constant));
     result->integer = constant;
-    result->type = 0;
+    result->type = TYPE_INT;
     return result;
 }
 
@@ -617,7 +617,7 @@ Constant* CharacterConstantSemanticAction(ConstantCharacter* constant) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Constant* result = calloc(1, sizeof(Constant));
     result->character = constant;
-    result->type = 1;
+    result->type = TYPE_CHAR;
     return result;
 }
 

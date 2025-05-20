@@ -1,1 +1,1 @@
-int a = 1 * 2 / 3 / 4;
+int main16() { return (1 + 2) * 3; }

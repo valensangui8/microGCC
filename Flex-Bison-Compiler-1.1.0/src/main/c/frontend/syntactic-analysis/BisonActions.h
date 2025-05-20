@@ -31,21 +31,21 @@ DeclarationList* SingleDeclarationListSemanticAction(Declaration* declaration);
 DeclarationList* AppendDeclarationListSemanticAction(DeclarationList* list, Declaration* declaration);
 DeclarationSuffix* VariableDeclarationSuffixSemanticAction(VariableSuffix* variableSuffix);
 DeclarationSuffix* FunctionDeclarationSuffixSemanticAction(Parameters* parameters, FunctionSuffix* functionSuffix);
-FunctionSuffix* EmptyFuncionSuffixSemanticAction();
-FunctionSuffix* BlockFuncionSuffixSemanticAction(Block* block);
+FunctionSuffix* EmptyFunctionSuffixSemanticAction();
+FunctionSuffix* BlockFunctionSuffixSemanticAction(Block* block);
 VariableSuffix* EmptyVariableSuffixSemanticAction();
 VariableSuffix* AssignmentVariableSuffixSemanticAction(Expression* expression);
 VariableSuffix* ArrayVariableSuffixSemanticAction(int size);
 
 // Parameter actions
 Parameter* ParameterSemanticAction(DataType type, Identifier* identifier, ParameterArray * array) ;
-Parameters* VoidParametrosSemanticAction();
-Parameters* ListParametrosSemanticAction(ParameterList* list);
-Parameters* EmptyParametrosSemanticAction();
-ParameterList* SingleParametroListSemanticAction(Parameter* parameter);
-ParameterList* AppendParametroListSemanticAction(Parameter* parameter, ParameterList* list);
-ParameterArray* ArrayParametroArraySemanticAction();
-ParameterArray* EmptyParametroArraySemanticAction();
+Parameters* VoidParametersSemanticAction();
+Parameters* ListParametersSemanticAction(ParameterList* list);
+Parameters* EmptyParametersSemanticAction();
+ParameterList* SingleParameterListSemanticAction(Parameter* parameter);
+ParameterList* AppendParameterListSemanticAction(Parameter* parameter, ParameterList* list);
+ParameterArray* ArrayParameterArraySemanticAction();
+ParameterArray* EmptyParameterArraySemanticAction();
 
 // Block and statement actions
 Block* BlockSemanticAction(Statements* statements);

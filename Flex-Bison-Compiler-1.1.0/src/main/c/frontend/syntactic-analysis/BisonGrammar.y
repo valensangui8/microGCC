@@ -144,8 +144,8 @@ DeclarationSuffix: VariableSuffix SEMICOLON                            { $$ = Va
 	| OPEN_PARENTHESIS Parameters CLOSE_PARENTHESIS FunctionSuffix      { $$ = FunctionDeclarationSuffixSemanticAction($2, $4); }
 	;
 
-FunctionSuffix: SEMICOLON                                               { $$ = EmptyFuncionSuffixSemanticAction(); }
-	| Block                                                           { $$ = BlockFuncionSuffixSemanticAction($1); }
+FunctionSuffix: SEMICOLON                                               { $$ = EmptyFunctionSuffixSemanticAction(); }
+	| Block                                                           { $$ = BlockFunctionSuffixSemanticAction($1); }
 	;
 
 VariableSuffix: %empty                                                 { $$ = EmptyVariableSuffixSemanticAction(); }
@@ -153,20 +153,20 @@ VariableSuffix: %empty                                                 { $$ = Em
 	| OPEN_BRACKET INTEGER CLOSE_BRACKET                               { $$ = ArrayVariableSuffixSemanticAction($2); }
 	;
 
-Parameters: VOID                                                       { $$ = VoidParametrosSemanticAction(); }
-	| ParameterList                                                   { $$ = ListParametrosSemanticAction($1); }
-	| %empty                                                           { $$ = EmptyParametrosSemanticAction(); }
+Parameters: VOID                                                       { $$ = VoidParametersSemanticAction(); }
+	| ParameterList                                                   { $$ = ListParametersSemanticAction($1); }
+	| %empty                                                           { $$ = EmptyParametersSemanticAction(); }
 	;
 
-ParameterList: Parameter                                              { $$ = SingleParametroListSemanticAction($1); }
-	| Parameter COMMA ParameterList                                   { $$ = AppendParametroListSemanticAction($1, $3); }
+ParameterList: Parameter                                              { $$ = SingleParameterListSemanticAction($1); }
+	| Parameter COMMA ParameterList                                   { $$ = AppendParameterListSemanticAction($1, $3); }
 	;
 
 Parameter: Type Identifier ParameterArray                           { $$ = ParameterSemanticAction($1, $2, $3); }
 	;
 
-ParameterArray: OPEN_BRACKET CLOSE_BRACKET                             { $$ = ArrayParametroArraySemanticAction(); }
-	| %empty                                                           { $$ = EmptyParametroArraySemanticAction(); }
+ParameterArray: OPEN_BRACKET CLOSE_BRACKET                             { $$ = ArrayParameterArraySemanticAction(); }
+	| %empty                                                           { $$ = EmptyParameterArraySemanticAction(); }
 	;
 
 Type: INT                                                              { $$ = TYPE_INT; }

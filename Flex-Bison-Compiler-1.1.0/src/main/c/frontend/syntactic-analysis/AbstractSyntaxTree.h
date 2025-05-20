@@ -81,6 +81,18 @@ typedef enum {
     VARIABLE_SUFFIX_ARRAY
 } VariableSuffixType;
 
+typedef enum{
+    PARAMS_VOID,
+    PARAMS_LIST,
+    PARAMS_EMPTY
+} ParametersType;
+
+typedef enum{
+    SUFFIX_EMPTY,
+    SUFFIX_BLOCK
+}FunctionSuffixType;
+
+
 typedef struct Block Block;
 typedef struct Constant Constant;
 typedef struct Declaration Declaration;
@@ -113,7 +125,7 @@ struct ParameterArray {
 };
 
 struct Constant {
-    int type;
+    DataType type;
     union {
         ConstantInteger * integer;
         ConstantCharacter * character;
@@ -174,12 +186,12 @@ struct ParameterList {
 };
 
 struct Parameters {
-    int type;
+    ParametersType type;
     ParameterList* list;
 };
 
 struct FunctionSuffix {
-    int type;
+    FunctionSuffixType type;
     Block* block;
 };
 

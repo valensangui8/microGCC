@@ -230,7 +230,7 @@ void freeExpression(Expression* node) {
 
 void freeConstant(Constant* node) {
     if (node == NULL) return;
-    if (node->type == 0) free(node->integer);
+    if (node->type == TYPE_INT) free(node->integer);
     else free(node->character);
     free(node);
 }
