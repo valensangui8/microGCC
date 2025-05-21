@@ -1,0 +1,14 @@
+int main() {
+    /* Variable 'total' is used without being declared */
+    total = 100;
+    
+    /* Variable 'counter' is used in a calculation without declaration */
+    int result = counter * 5;
+    
+    /* Using an undeclared variable in a conditional */
+    if (isValid == 1) {
+        int x = 10;
+    }
+    
+    return 0;
+}
