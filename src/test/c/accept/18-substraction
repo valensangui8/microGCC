@@ -1,8 +1,0 @@
-int main() {
-    int number1 = 1500;
-    int number2 = 2500;
-    int sum;
-    sum = number1 - number2;
-    int verification = number1 - number2;
-    return 0;
-}
