@@ -1,0 +1,3 @@
+extern int function(){   //As weird as it seems, you can define an external function in C.
+    return 0;
+}
