@@ -1,0 +1,23 @@
+/*
+	A multiline comment.
+*/
+
+int main(){
+
+    /*
+    * i dont know how
+    * to solve
+    * this problem
+    * properly
+    */
+int i;
+int j;
+for(i=0 ; i<10 ; i = i +1 ){
+    for(j = 0 ; j< i ; j = j + 1){
+        if(i< j -3){
+            return 10;
+        }
+    }
+}
+
+}

@@ -1,0 +1,4 @@
+int fun1(void);
+int fun2(int integer);
+int global_integer = 5;
+char global_char = 'c';

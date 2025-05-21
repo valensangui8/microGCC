@@ -36,6 +36,9 @@ IDENTIFIER      {LETTER}({LETTER}|{DIGIT}|_)*
 <MULTILINE_COMMENT>[^*]+			{ IgnoredLexemeAction(createLexicalAnalyzerContext()); }
 <MULTILINE_COMMENT>.				{ IgnoredLexemeAction(createLexicalAnalyzerContext()); }
 
+"//"[^\n]*                          { IgnoredLexemeAction(createLexicalAnalyzerContext()); }
+
+
 "int"								{ return KeywordLexemeAction(createLexicalAnalyzerContext(), INT); }
 "char"								{ return KeywordLexemeAction(createLexicalAnalyzerContext(), CHAR); }
 "void"								{ return KeywordLexemeAction(createLexicalAnalyzerContext(), VOID); }
