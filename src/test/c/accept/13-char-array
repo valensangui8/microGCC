@@ -1,5 +1,4 @@
 char func(char string[]){
-
     return string;
 }
 
@@ -13,5 +12,4 @@ int main(){
     string[4] = '\0';
 
     func(string);
-
 }

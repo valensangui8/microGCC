@@ -1,0 +1,5 @@
+
+int foo(){
+    int a = (1+((2-2)/1)*(4%2)) * 10 ;
+    return result4;
+}

@@ -1,27 +1,7 @@
 
-extern int externalSquareRoot(int number);
-extern int externalPower(int base, int exponent);
-extern int externalRandom(int max);
+extern int sum(int n1,int n2);
 
 int main() {
-    /* Use of external mathematical functions */
-    int number = 25;
-    int square_root;
-    
-    square_root = externalSquareRoot(number);
-    
-    int base = 2;
-    int exponent = 8;
-    int power_result;
-    
-    power_result = externalPower(base, exponent);
-    
-    int random_numbers[5];
-    int i;
-    for (i = 0; i < 5; i = i + 1) {
-        random_numbers[i] = externalRandom(100) + 1;
-    }
-    
-    return 0;
+    return sum(3,5);
 }
 

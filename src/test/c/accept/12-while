@@ -1,4 +1,5 @@
 int main(){
-    while(a != 9){}
+    while(a != 9){
 
+    }
 }

@@ -16,12 +16,3 @@ int foo(){
 
     return result4;
 }
-
-
-int main(){
-    int a;
-    a= 10 - 10 - 10 + 'b';
-    while(1 && (2 || 1) || 2 || 3 + 3 + 3 || 4 - (10 * 6) / 1 * 6 && 9 % 10){
-        return 1;
-    }
-}
