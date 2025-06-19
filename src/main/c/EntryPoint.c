@@ -1,5 +1,7 @@
 #include "backend/code-generation/Generator.h"
 #include "backend/domain-specific/Calculator.h"
+#include "backend/domain-specific/AstNavigator.h"
+#include "backend/domain-specific/SymbolTable.h"
 #include "frontend/lexical-analysis/FlexActions.h"
 #include "frontend/syntactic-analysis/AbstractSyntaxTree.h"
 #include "frontend/syntactic-analysis/BisonActions.h"
@@ -37,6 +39,8 @@ const int main(const int count, const char ** arguments) {
     const SyntacticAnalysisStatus syntacticAnalysisStatus = parse(&compilerState);
     CompilationStatus compilationStatus = SUCCEED;
     if (syntacticAnalysisStatus == ACCEPT) {
+
+        logDebugging(logger, "is it accepted? %d", navigateAst(compilerState.abstractSyntaxtTree, &compilerState.symbolTable));
         // ----------------------------------------------------------------------------------------
         // Beginning of the Backend... ------------------------------------------------------------
         /*logDebugging(logger, "Computing expression value...");

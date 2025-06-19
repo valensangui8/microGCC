@@ -28,10 +28,14 @@
 //static char * _indentation(const unsigned int indentationLevel);
 //static void _output(const unsigned int indentationLevel, const char * const format, ...);
 //
-///**
-// * Converts and expression type to the proper character of the operation
-// * involved, or returns '\0' if that's not possible.
-// */
+//
+//static const char _dataTypeToCharPtr(DataType dt){
+//    if(dt == TYPE_INT){
+//        return "int";
+//    }
+//    return "char";
+//}
+//
 //static const char _expressionTypeToCharacter(const ExpressionType type) {
 //	switch (type) {
 //		case ADDITION: return '+';
@@ -111,11 +115,39 @@
 //	_output(indentationLevel, "%s", "]\n");
 //}
 //
+//
+//
+//static void _generateDeclaration(unsigned int indentation, Declaration * dec){
+//    //TODO algo con la tabla
+//    if(existsSymbol(dec->identifier)){
+//        logError(_logger, "Symbol already exists %d", dec->identifier);
+//        exit(1);
+//    }
+//    insertSymbol(dec->identifier, dec->dataType, dec->declarationType);
+//    if(dec->declarationType == DECLARATION_EXTERN){
+//        _output(indentation, "extern %s\n", dec->declarationType);
+//    }
+//
+//    _output(indentation, "push ",  );
+//}
+//
+//static void _generateDeclarationList(unsigned int indentation, DeclarationList * dl){
+//    if(dl == null){
+//        return;
+//    }
+//    _generateDeclaration(dl->declaration);
+//    _generateDeclarationList(indentation, dl->next);
+//}
+//
 ///**
 // * Generates the output of the program.
 // */
 //static void _generateProgram(Program * program) {
-//	_generateExpression(3, program->expression);
+////	_generateExpression(3, program->expression);
+//    if(program->declarationList == null){
+//        return;
+//    }
+//    _generateDeclarationList(3, program->declarationList);
 //}
 //
 ///**
