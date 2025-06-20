@@ -2,115 +2,95 @@
 
 static Logger* _logger = NULL;
 
-void initializeSymbolTableModule() {
-    _logger = createLogger("SymbolTable");
+void initializeSymbolTableModule(){ _logger = createLogger("SymbolTable"); }
+void shutdownSymbolTableModule () { if(_logger) destroyLogger(_logger); }
+
+SymbolTable* createSymbolTable(){
+    SymbolTable* t = calloc(1,sizeof(SymbolTable));
+    t->head = NULL; t->currentOffset = 8;    /* RBP+8, despues del RET addr */
+    return t;
+}
+void destroySymbolTable(SymbolTable* t){
+    if(!t) return;
+    SymbolEntry* e = t->head;
+    while(e){
+        SymbolEntry* nxt = e->next;
+        free(e->name);
+        if(e->functionName) free(e->functionName);
+        free(e);
+        e = nxt;
+    }
+    free(t);
 }
 
-void shutdownSymbolTableModule() {
-    if (_logger != NULL) {
-        destroyLogger(_logger);
-    }
+static SymbolEntry* newEntry(const char* name,DataType ty,const char* fnName){
+    SymbolEntry* e = calloc(1,sizeof(SymbolEntry));
+    e->name = strdup(name);
+    e->dataType = ty;
+    e->functionName = fnName ? strdup(fnName) : NULL;
+    return e;
 }
 
-SymbolTable* createSymbolTable() {
-    SymbolTable* table = calloc(1, sizeof(SymbolTable));
-    table->head = NULL;
-    table->currentOffset = 8;  // Empezamos en RBP+8 (después del return address)
-    return table;
-}
 
-void destroySymbolTable(SymbolTable* table) {
-    if (table == NULL) return;
+void addVariable(SymbolTable* t,const char* name,DataType ty,
+                 int isArr,int arrSz,const char* fnName){
+    logDebugging(_logger,"Add var %s (fn=%s)",name,fnName?fnName:"GLOBAL");
+    SymbolEntry* e = newEntry(name,ty,fnName);
+    e->symbolType = SYMBOL_VARIABLE;
+    e->isArray    = isArr;
+    e->arraySize  = arrSz;
+    int words = (ty==TYPE_INT)?2:1;                 //todo podria cambiar
+    if(isArr) words*=arrSz;
+    e->offset = t->currentOffset;
+    t->currentOffset += words;
+    if(t->currentOffset & 1) ++t->currentOffset;             /* alinear 2 B */
 
-    SymbolEntry* current = table->head;
-    while (current != NULL) {
-        SymbolEntry* next = current->next;
-        free(current->name);
-        free(current);
-        current = next;
-    }
-    free(table);
-}
 
-void addVariable(SymbolTable* table, const char* name, DataType type, int isArray, int arraySize) {
-    logDebugging(_logger, "Adding variable: %s", name);
-
-    SymbolEntry* entry = calloc(1, sizeof(SymbolEntry));
-    entry->name = strdup(name);
-    entry->dataType = type;
-    entry->symbolType = SYMBOL_VARIABLE;
-    entry->isArray = isArray;
-    entry->arraySize = arraySize;
-
-    // Calcular el offset basado en el tipo y si es array
-    int size = (type == TYPE_INT) ? 2 : 1;  // int = 2 bytes, char = 1 byte en 8086
-    if (isArray) {
-        size *= arraySize;
-    }
-
-    entry->offset = table->currentOffset;
-    table->currentOffset += size;
-
-    // Alinear a palabra si es necesario
-    if (table->currentOffset % 2 != 0) {
-        table->currentOffset++;
-    }
     /*
-    while(table->currentOffset % 8 != 0){
-        table->currentOffset += 4;
-    }
+        while(table->currentOffset % 8 != 0){  todo ?
+            table->currentOffset += 4;
+        }
     */
 
-    // Agregar al inicio de la lista
-    entry->next = table->head;
-    table->head = entry;
+
+    e->next = t->head; t->head = e;
 }
 
-void addFunction(SymbolTable* table, const char* name, DataType returnType, int paramCount) {
-    logDebugging(_logger, "Adding function: %s", name);
-
-    SymbolEntry* entry = calloc(1, sizeof(SymbolEntry));
-    entry->name = strdup(name);
-    entry->dataType = returnType;
-    entry->symbolType = SYMBOL_FUNCTION;
-    entry->paramCount = paramCount;
-    entry->offset = 0;  // Las funciones no tienen offset
-
-    entry->next = table->head;
-    table->head = entry;
+void addFunction(SymbolTable* t,const char* name,DataType ret,int nPar){
+    logDebugging(_logger,"Add func %s",name);
+    SymbolEntry* e = newEntry(name,ret,NULL);
+    e->symbolType = SYMBOL_FUNCTION;
+    e->paramCount = nPar;
+    e->next = t->head; t->head = e;
 }
 
-void addParameter(SymbolTable* table, const char* name, DataType type, int offset, int isArray, int arraySize) {
-    logDebugging(_logger, "Adding parameter: %s at offset %d", name, offset);
-
-    SymbolEntry* entry = calloc(1, sizeof(SymbolEntry));
-    entry->name = strdup(name);
-    entry->dataType = type;
-    entry->symbolType = SYMBOL_PARAMETER;
-    entry->offset = offset;
-
-    entry->isArray = isArray;
-    entry->arraySize=arraySize;
-
-    entry->next = table->head;
-    table->head = entry;
+void addParameter(SymbolTable* t,const char* name,DataType ty,int off,
+                  int isArr,int arrSz,const char* fnName){
+    logDebugging(_logger,"Add param %s (fn=%s)",name,fnName);
+    SymbolEntry* e = newEntry(name,ty,fnName);
+    e->symbolType = SYMBOL_PARAMETER;
+    e->offset     = off;
+    e->isArray    = isArr;
+    e->arraySize  = arrSz;
+    e->next = t->head; t->head = e;
 }
 
-SymbolEntry* lookupSymbol(SymbolTable* table, const char* name) {
-    SymbolEntry* current = table->head;
-    while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
-            return current;
+/* ────── búsqueda ────── */
+SymbolEntry* lookupSymbol(SymbolTable* t,const char* name,
+                          const char* currentFnName){
+    SymbolEntry* cur = t->head;
+    SymbolEntry* globalHit = NULL;
+    while(cur){
+        if(strcmp(cur->name,name)==0){
+            if(currentFnName && cur->functionName &&
+               strcmp(cur->functionName,currentFnName)==0)
+                return cur;                                  /* primero local */
+            if(cur->functionName==NULL) globalHit = cur;     /* guarda global */
         }
-        current = current->next;
+        cur = cur->next;
     }
-    return NULL;
+    return globalHit;
 }
 
-int getCurrentOffset(SymbolTable* table) {
-    return table->currentOffset;
-}
-
-void resetOffset(SymbolTable* table) {
-    table->currentOffset = 8;  // Reset to RBP+8
-}
+int  getCurrentOffset(SymbolTable* t){ return t->currentOffset; }
+void resetOffset     (SymbolTable* t){ t->currentOffset = 8; }

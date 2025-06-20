@@ -6,23 +6,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 #define UNKNOWN_ARRAY_SIZE -1
 
+/** Tipo de símbolo */
 typedef enum {
     SYMBOL_VARIABLE,
     SYMBOL_FUNCTION,
     SYMBOL_PARAMETER
 } SymbolType;
 
+/* ─────────── Entrada de la TS ─────────── */
 typedef struct SymbolEntry {
-    char* name;
-    DataType dataType;
+    char*      name;
+    DataType   dataType;
     SymbolType symbolType;
-    int offset;              // Offset desde RBP para variables locales
-    int paramCount;          // Para funciones: número de parámetros
-    int isArray;             // 1 si es array, 0 si no
-    int arraySize;           // Tamaño del array (si aplica)
+    char*      functionName;        //NULL => global; otro => nombre de la función
+    int offset;                     /* variables / parámetros               */
+    int paramCount;                 /* funciones                            */
+    int isArray;
+    int arraySize;                  /* UNKNOWN_ARRAY_SIZE si no se conoce   */
+
     struct SymbolEntry* next;
 } SymbolEntry;
 
@@ -47,37 +50,29 @@ typedef struct SymbolEntry {
 
 typedef struct {
     SymbolEntry* head;
-    int currentOffset;       // Offset actual para la próxima variable local
+    int          currentOffset;     /* Offset actual para locales (palabras)*/
 } SymbolTable;
 
-/** Initialize module's internal state. */
+/* Init / shutdown */
 void initializeSymbolTableModule();
-
-/** Shutdown module's internal state. */
 void shutdownSymbolTableModule();
 
-/** Create a new symbol table */
+/* Creación / destrucción de tabla */
 SymbolTable* createSymbolTable();
+void         destroySymbolTable(SymbolTable* table);
 
-/** Destroy a symbol table and free its resources */
-void destroySymbolTable(SymbolTable* table);
+/* Inserciones */
+void addVariable (SymbolTable* t,const char* name,DataType ty,
+                  int isArr,int arrSz,const char* fnName);
+void addFunction (SymbolTable* t,const char* name,DataType ret,int nPar);
+void addParameter(SymbolTable* t,const char* name,DataType ty,int off,
+                  int isArr,int arrSz,const char* fnName);
 
-/** Add a variable to the symbol table */
-void addVariable(SymbolTable* table, const char* name, DataType type, int isArray, int arraySize);
+SymbolEntry* lookupSymbol(SymbolTable* t,const char* name,
+                          const char* currentFnName);
 
-/** Add a function to the symbol table */
-void addFunction(SymbolTable* table, const char* name, DataType returnType, int paramCount);
-
-/** Add a parameter to the symbol table */
-void addParameter(SymbolTable* table, const char* name, DataType type, int offset, int isArray, int arraySize);
-
-/** Look up a symbol in the table */
-SymbolEntry* lookupSymbol(SymbolTable* table, const char* name);
-
-/** Get the current offset for local variables */
-int getCurrentOffset(SymbolTable* table);
-
-/** Reset offset (useful when entering a new function) */
-void resetOffset(SymbolTable* table);
+/* Offset helpers */
+int  getCurrentOffset(SymbolTable* t);
+void resetOffset     (SymbolTable* t);
 
 #endif

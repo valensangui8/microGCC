@@ -6,6 +6,7 @@ static Logger      *logger   = NULL;
 static SymbolTable *symTable = NULL;
 static int          lblCnt   = 0;
 static char        *fnEndLbl = NULL;
+static char  *genFn = NULL;
 static int          totalW   = 0;   /* palabras (2 B) de la función */
 
 /* ──────── UTILIDADES DE SALIDA ──────── */
@@ -71,7 +72,7 @@ static void gArgsRev(unsigned,ListArguments*,int);
 
 /* ──────── EXPRESIONES ──────── */
 static void gConst(unsigned n,Constant*c){ out(n,"mov rax,%d\n",*c->integer); }
-static void gIdent(unsigned n,const char*s){ load(n,"rax",lookupSymbol(symTable,s)); }
+static void gIdent(unsigned n,const char*s){ load(n,"rax",lookupSymbol(symTable,s, genFn)); }
 
 static void gBinary(unsigned n,Expression*e,const char*op){
     gExpr(n,e->leftExpression); out(n,"push rax\n");
@@ -98,18 +99,18 @@ static void gArrayBase(unsigned n,SymbolEntry*e){
 }
 static void gArrayAcc(unsigned n,const char*arr,Expression*idx){
     gExpr(n,idx); out(n,"mov rbx, rax\n");
-    SymbolEntry*e=lookupSymbol(symTable,arr);
+    SymbolEntry*e=lookupSymbol(symTable,arr, genFn);
     if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
     gArrayBase(n,e);
     out(n,"add rdi, rbx\nmov rax,[rdi]\n");
 }
 static void gLValue(unsigned n,Expression*lval){
     if(lval->type==EXPRESSION_IDENTIFIER){
-        store(n,lookupSymbol(symTable,*lval->identifier));
+        store(n,lookupSymbol(symTable,*lval->identifier, genFn));
     }else{
         out(n,"push rax\n");
         gExpr(n,lval->indexExpression); out(n,"mov rbx, rax\n");
-        SymbolEntry*e=lookupSymbol(symTable,*lval->identifierArray);
+        SymbolEntry*e=lookupSymbol(symTable,*lval->identifierArray, genFn);
         if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
         gArrayBase(n,e);
         out(n,"add rdi, rbx\npop rax\nmov [rdi], rax\n");
@@ -201,7 +202,7 @@ static void gStmt(unsigned n,Statement*s){
         case STATEMENT_DECLARATION:
             if(s->variableSuffix->type==VARIABLE_SUFFIX_ASSIGNMENT){
                 gExpr(n,s->variableSuffix->expression);
-                store(n,lookupSymbol(symTable,*s->identifier)); }
+                store(n,lookupSymbol(symTable,*s->identifier, genFn)); }
             break;
         case STATEMENT_IF:      gIf(n,s->statementIf);       break;
         case STATEMENT_WHILE:   gWhile(n,s->statementWhile); break;
@@ -221,6 +222,8 @@ static void gBlock(unsigned n,Block*b){
 
 /* ──────── FUNCIÓN ──────── */
 static void gFunction(Declaration*d){
+    char * callersFunctionName = genFn;
+    genFn = *d->identifier;
     totalW = getCurrentOffset(symTable);
     fnEndLbl = newLbl();
 
@@ -236,6 +239,7 @@ static void gFunction(Declaration*d){
 
     out(0,"%s:\n",fnEndLbl); epi(1);
     free(fnEndLbl); fnEndLbl=NULL;
+    genFn = callersFunctionName;
 }
 
 static void gExtern(Declaration *d){

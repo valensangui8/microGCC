@@ -18,6 +18,8 @@ static bool _checkTypeCompatibility(DataType expected, DataType actual);
 
 /* PUBLIC FUNCTIONS */
 
+#define CUR_FN (_context->currentFunctionName)
+
 void initializeSemanticAnalyzerModule() {
     _logger = createLogger("SemanticAnalyzer");
     initializeSymbolTableModule();
@@ -104,9 +106,10 @@ static bool _analyzeDeclarationList(DeclarationList* list) {
     return true;
 }
 
+
 static bool _analyzeDeclarationSuffixVariable(Declaration * decl, SymbolEntry * existing){
     // Variable declaration - no redeclaration allowed
-    if (existing != NULL) {
+    if (existing != NULL) {          //todo cambiar aca (y capaz otro semantic_error_redeclared) para que te deje cambiar identificadores globales en funciones.
         _reportError(SEMANTIC_ERROR_REDECLARED_IDENTIFIER, *decl->identifier);
         return false;
     }
@@ -122,7 +125,7 @@ static bool _analyzeDeclarationSuffixVariable(Declaration * decl, SymbolEntry * 
     }
 
     // Add to symbol table
-    addVariable(_context->symbolTable, *decl->identifier, decl->dataType, isArray, arraySize);
+    addVariable(_context->symbolTable, *decl->identifier, decl->dataType, isArray, arraySize, CUR_FN);
 
     // Check initialization if present
     if (vs->type == VARIABLE_SUFFIX_ASSIGNMENT) {
@@ -174,7 +177,7 @@ static bool _analyzeDeclarationSuffixFunction(Declaration * decl, SymbolEntry * 
     } else {
         // First time seeing this function - add to symbol table
         addFunction(_context->symbolTable, *decl->identifier, decl->dataType, paramCount);
-        SymbolEntry* funcEntry = lookupSymbol(_context->symbolTable, *decl->identifier);
+        SymbolEntry* funcEntry = lookupSymbol(_context->symbolTable, *decl->identifier, CUR_FN);
 
         if (isDefinition) {
             funcEntry->offset = 0;  // Mark as defined
@@ -193,7 +196,7 @@ static bool _analyzeDeclarationSuffixFunction(Declaration * decl, SymbolEntry * 
 }
 
 static bool _analyzeDeclaration(Declaration* decl) {
-    SymbolEntry* existing = lookupSymbol(_context->symbolTable, *decl->identifier);
+    SymbolEntry* existing = lookupSymbol(_context->symbolTable, *decl->identifier, CUR_FN);
 
     if (decl->declarationSuffix->type == DECLARATION_SUFFIX_VARIABLE) {
         // Variable declaration - no redeclaration allowed
@@ -311,15 +314,15 @@ static bool _analyzeFunction(Declaration* funcDecl) {
             Parameter* param = p->parameter;
 
             // Check for duplicate parameter names
-            if (lookupSymbol(_context->symbolTable, *param->identifier) != NULL) {
+            if (lookupSymbol(_context->symbolTable, *param->identifier, CUR_FN) != NULL) {
                 _reportError(SEMANTIC_ERROR_REDECLARED_IDENTIFIER, *param->identifier);
                 return false;
             }
 
             if(param->array->type == PARAMETER_ARRAY_BRACKETS){
-                addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 1 , UNKNOWN_ARRAY_SIZE); /*TODO no sabemos el array size*/
+                addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 1 , UNKNOWN_ARRAY_SIZE, CUR_FN); /*TODO no sabemos el array size*/
             }else{
-                addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 0 ,0);
+                addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 0 ,0, CUR_FN);
             }
             //addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset); // todo estaba esto antes. (esta raro porque le pongo arraySize = -1, podria ser un unknown o cambiar la gramatica. )
             //parece estar bien solo que en la generacion de codigo hace un mov en vez de un lea
@@ -371,7 +374,7 @@ static bool _analyzeStatement(Statement* stmt) {
     switch (stmt->type) {
         case STATEMENT_DECLARATION: {
             // Check if identifier already exists
-            if (lookupSymbol(_context->symbolTable, *stmt->identifier) != NULL) {
+            if (lookupSymbol(_context->symbolTable, *stmt->identifier, CUR_FN) != NULL) {
                 _reportError(SEMANTIC_ERROR_REDECLARED_IDENTIFIER, *stmt->identifier);
                 return false;
             }
@@ -385,7 +388,7 @@ static bool _analyzeStatement(Statement* stmt) {
                 return false;
             }
 
-            addVariable(_context->symbolTable, *stmt->identifier, stmt->dataType, isArray, arraySize);
+            addVariable(_context->symbolTable, *stmt->identifier, stmt->dataType, isArray, arraySize, CUR_FN);
 
             if (vs->type == VARIABLE_SUFFIX_ASSIGNMENT) {
                 DataType exprType = _analyzeExpression(vs->expression);
@@ -529,7 +532,7 @@ static DataType _analyzeExpression(Expression* expr) {
         }
 
         case EXPRESSION_IDENTIFIER: {
-            SymbolEntry* symbol = lookupSymbol(_context->symbolTable, *expr->identifier);
+            SymbolEntry* symbol = lookupSymbol(_context->symbolTable, *expr->identifier, CUR_FN);
             if (symbol == NULL) {
                 _reportError(SEMANTIC_ERROR_UNDECLARED_VARIABLE, *expr->identifier);
                 return -1;
@@ -545,7 +548,7 @@ static DataType _analyzeExpression(Expression* expr) {
             return _analyzeExpression(expr->singleExpression);
 
         case EXPRESSION_ARRAY_ACCESS: {
-            SymbolEntry* symbol = lookupSymbol(_context->symbolTable, *expr->identifierArray);
+            SymbolEntry* symbol = lookupSymbol(_context->symbolTable, *expr->identifierArray, CUR_FN);
             if (symbol == NULL) {
                 _reportError(SEMANTIC_ERROR_UNDECLARED_VARIABLE, *expr->identifierArray);
                 return -1;
@@ -568,7 +571,7 @@ static DataType _analyzeExpression(Expression* expr) {
         }
 
         case EXPRESSION_FUNCTION_CALL: {
-            SymbolEntry* function = lookupSymbol(_context->symbolTable, *expr->identifierFunc);
+            SymbolEntry* function = lookupSymbol(_context->symbolTable, *expr->identifierFunc, CUR_FN);
             if (function == NULL) {
                 _reportError(SEMANTIC_ERROR_UNDECLARED_FUNCTION, *expr->identifierFunc);
                 return -1;
