@@ -55,6 +55,11 @@ void addVariable(SymbolTable* table, const char* name, DataType type, int isArra
     if (table->currentOffset % 2 != 0) {
         table->currentOffset++;
     }
+    /*
+    while(table->currentOffset % 8 != 0){
+        table->currentOffset += 4;
+    }
+    */
 
     // Agregar al inicio de la lista
     entry->next = table->head;
@@ -75,7 +80,7 @@ void addFunction(SymbolTable* table, const char* name, DataType returnType, int 
     table->head = entry;
 }
 
-void addParameter(SymbolTable* table, const char* name, DataType type, int offset) {
+void addParameter(SymbolTable* table, const char* name, DataType type, int offset, int isArray, int arraySize) {
     logDebugging(_logger, "Adding parameter: %s at offset %d", name, offset);
 
     SymbolEntry* entry = calloc(1, sizeof(SymbolEntry));
@@ -83,6 +88,9 @@ void addParameter(SymbolTable* table, const char* name, DataType type, int offse
     entry->dataType = type;
     entry->symbolType = SYMBOL_PARAMETER;
     entry->offset = offset;
+
+    entry->isArray = isArray;
+    entry->arraySize=arraySize;
 
     entry->next = table->head;
     table->head = entry;
