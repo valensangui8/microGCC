@@ -39,7 +39,7 @@ void addVariable(SymbolTable* t,const char* name,DataType ty,
     e->symbolType = SYMBOL_VARIABLE;
     e->isArray    = isArr;
     e->arraySize  = arrSz;
-    int words = (ty==TYPE_INT)?2:1;                 //todo podria cambiar
+    int words = (ty==TYPE_INT)?2:1;                          //todo podria cambiar
     if(isArr) words*=arrSz;
     e->offset = t->currentOffset;
     t->currentOffset += words;

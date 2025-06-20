@@ -44,8 +44,6 @@ static inline void load(unsigned n,const char*reg,SymbolEntry*e){
         return;  //@TODO , esto, me rompe algo???
     }
 
-   // out(10, ";symbol type %d, %d is array ;", e->symbolType, e->isArray);
-
     out(n,o>=0? "mov %s,[rbp+%d]  ; %s\n":"mov %s,[rbp-%d]  ; %s\n",
         reg,o>=0?o:-o,e->name);
 }
@@ -60,7 +58,40 @@ static void filePro(void){
     out(0,"section .text\nglobal _start\n\n_start:\n");
     out(1,"call main\nmov rdi, rax\nmov rax, 60\nsyscall\n\n");
 }
-static void fileEpi(void){ out(0,"; end of file\n"); }
+static void fileEpi(void){
+   /* todo arreglar globales
+    * if (symTable == NULL) {
+        // Error: la tabla de símbolos no fue inicializada. todo add log
+        return;
+    }
+
+    SymbolEntry * entry = symTable->head;
+    out(0, "section .data\n");
+
+    while (entry != NULL) {
+        // Solo procesamos símbolos que no pertenecen a una función (i.e., variables globales)
+        if (entry->functionName == NULL) {
+            const char * varName = entry->name; // nombre original del símbolo
+            const SymbolType type = entry->dataType;
+
+            switch (type) {
+                case TYPE_CHAR:
+                    out(1, "%s: db 0\n", varName); // 1 byte
+                    break;
+                case TYPE_INT:
+                    out(1, "%s: dq 0\n", varName); // 8 bytes (quadword)
+                    break;
+                default:
+                    out(1, "; Warning: tipo no reconocido para %s\n", varName);
+                    break;
+            }
+        }
+        entry = entry->next;
+    }
+*/
+    out(0, "; end of file\n");
+}
+
 static void epi(unsigned n){ out(n,"mov rsp, rbp\npop rbp\nret\n"); }
 
 /* ──────── ADELANTOS ──────── */

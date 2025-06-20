@@ -1,10 +1,10 @@
 ; ==========================================
-; file:  libprint.asm      (NASM, ELF-64)
+; file:                       (NASM, ELF-64)
 ; ==========================================
 
-        global  print_number
-        global  print_str
-	global init_array
+global  print_number
+global  print_str
+global init_array
 ; ───────────────────────────────────────────
 ; print_number
 ;   Prints the 64-bit *signed* integer passed
