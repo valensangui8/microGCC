@@ -1,174 +1,252 @@
-//#include "Generator.h"
-//
-///* MODULE INTERNAL STATE */
-//
-//const char _indentationCharacter = ' ';
-//const char _indentationSize = 4;
-//static Logger * _logger = NULL;
-//
-//void initializeGeneratorModule() {
-//	_logger = createLogger("Generator");
-//}
-//
-//void shutdownGeneratorModule() {
-//	if (_logger != NULL) {
-//		destroyLogger(_logger);
-//	}
-//}
-//
-///** PRIVATE FUNCTIONS */
-//
-//static const char _expressionTypeToCharacter(const ExpressionType type);
-//static void _generateConstant(const unsigned int indentationLevel, Constant * constant);
-//static void _generateEpilogue(const int value);
-//static void _generateExpression(const unsigned int indentationLevel, Expression * expression);
-//static void _generateFactor(const unsigned int indentationLevel, Factor * factor);
-//static void _generateProgram(Program * program);
-//static void _generatePrologue(void);
-//static char * _indentation(const unsigned int indentationLevel);
-//static void _output(const unsigned int indentationLevel, const char * const format, ...);
-//
-///**
-// * Converts and expression type to the proper character of the operation
-// * involved, or returns '\0' if that's not possible.
-// */
-//static const char _expressionTypeToCharacter(const ExpressionType type) {
-//	switch (type) {
-//		case ADDITION: return '+';
-//		case DIVISION: return '/';
-//		case MULTIPLICATION: return '*';
-//		case SUBTRACTION: return '-';
-//		default:
-//			logError(_logger, "The specified expression type cannot be converted into character: %d", type);
-//			return '\0';
-//	}
-//}
-//
-///**
-// * Generates the output of a constant.
-// */
-//static void _generateConstant(const unsigned int indentationLevel, Constant * constant) {
-//	_output(indentationLevel, "%s", "[ $C$, circle, draw, black!20\n");
-//	_output(1 + indentationLevel, "%s%d%s", "[ $", constant->value, "$, circle, draw ]\n");
-//	_output(indentationLevel, "%s", "]\n");
-//}
-//
-///**
-// * Creates the epilogue of the generated output, that is, the final lines that
-// * completes a valid Latex document.
-// */
-//static void _generateEpilogue(const int value) {
-//	_output(0, "%s%d%s",
-//		"            [ $", value, "$, circle, draw, blue ]\n"
-//		"        ]\n"
-//		"    \\end{forest}\n"
-//		"\\end{document}\n\n"
-//	);
-//}
-//
-///**
-// * Generates the output of an expression.
-// */
-//static void _generateExpression(const unsigned int indentationLevel, Expression * expression) {
-//	_output(indentationLevel, "%s", "[ $E$, circle, draw, black!20\n");
-//	switch (expression->type) {
-//		case ADDITION:
-//		case DIVISION:
-//		case MULTIPLICATION:
-//		case SUBTRACTION:
-//			_generateExpression(1 + indentationLevel, expression->leftExpression);
-//			_output(1 + indentationLevel, "%s%c%s", "[ $", _expressionTypeToCharacter(expression->type), "$, circle, draw, purple ]\n");
-//			_generateExpression(1 + indentationLevel, expression->rightExpression);
-//			break;
-//		case FACTOR:
-//			_generateFactor(1 + indentationLevel, expression->factor);
-//			break;
-//		default:
-//			logError(_logger, "The specified expression type is unknown: %d", expression->type);
-//			break;
-//	}
-//	_output(indentationLevel, "%s", "]\n");
-//}
-//
-///**
-// * Generates the output of a factor.
-// */
-//static void _generateFactor(const unsigned int indentationLevel, Factor * factor) {
-//	_output(indentationLevel, "%s", "[ $F$, circle, draw, black!20\n");
-//	switch (factor->type) {
-//		case CONSTANT:
-//			_generateConstant(1 + indentationLevel, factor->constant);
-//			break;
-//		case EXPRESSION:
-//			_output(1 + indentationLevel, "%s", "[ $($, circle, draw, purple ]\n");
-//			_generateExpression(1 + indentationLevel, factor->expression);
-//			_output(1 + indentationLevel, "%s", "[ $)$, circle, draw, purple ]\n");
-//			break;
-//		default:
-//			logError(_logger, "The specified factor type is unknown: %d", factor->type);
-//			break;
-//	}
-//	_output(indentationLevel, "%s", "]\n");
-//}
-//
-///**
-// * Generates the output of the program.
-// */
-//static void _generateProgram(Program * program) {
-//	_generateExpression(3, program->expression);
-//}
-//
-///**
-// * Creates the prologue of the generated output, a Latex document that renders
-// * a tree thanks to the Forest package.
-// *
-// * @see https://ctan.dcc.uchile.cl/graphics/pgf/contrib/forest/forest-doc.pdf
-// */
-//static void _generatePrologue(void) {
-//	_output(0, "%s",
-//		"\\documentclass{standalone}\n\n"
-//		"\\usepackage[utf8]{inputenc}\n"
-//		"\\usepackage[T1]{fontenc}\n"
-//		"\\usepackage{amsmath}\n"
-//		"\\usepackage{forest}\n"
-//		"\\usepackage{microtype}\n\n"
-//		"\\begin{document}\n"
-//		"    \\centering\n"
-//		"    \\begin{forest}\n"
-//		"        [ \\text{$=$}, circle, draw, purple\n"
-//	);
-//}
-//
-///**
-// * Generates an indentation string for the specified level.
-// */
-//static char * _indentation(const unsigned int level) {
-//	return indentation(_indentationCharacter, level, _indentationSize);
-//}
-//
-///**
-// * Outputs a formatted string to standard output. The "fflush" instruction
-// * allows to see the output even close to a failure, because it drops the
-// * buffering.
-// */
-//static void _output(const unsigned int indentationLevel, const char * const format, ...) {
-//	va_list arguments;
-//	va_start(arguments, format);
-//	char * indentation = _indentation(indentationLevel);
-//	char * effectiveFormat = concatenate(2, indentation, format);
-//	vfprintf(stdout, effectiveFormat, arguments);
-//	fflush(stdout);
-//	free(effectiveFormat);
-//	free(indentation);
-//	va_end(arguments);
-//}
-//
-///** PUBLIC FUNCTIONS */
-//
-//void generate(CompilerState * compilerState) {
-//	logDebugging(_logger, "Generating final output...");
-//	_generatePrologue();
-//	_generateProgram(compilerState->abstractSyntaxtTree);
-//	_generateEpilogue(compilerState->value);
-//	logDebugging(_logger, "Generation is done.");
-//}
+#include "Generator.h"
+#include "../semantic-analysis/SymbolTable.h"
+
+/* ────────────────────  ESTADO GLOBAL  ──────────────────── */
+static Logger      *logger   = NULL;
+static SymbolTable *symTable = NULL;
+static int          lblCnt   = 0;
+static char        *fnEndLbl = NULL;
+
+/* ────────────────────  UTILIDADES  ──────────────────── */
+static char *pad(unsigned n){ return indentation(' ', n, 4); }
+static void out(unsigned n,const char *fmt,...)
+{
+    va_list ap; va_start(ap,fmt);
+    char *p  = pad(n);
+    char *ef = concatenate(2,p,fmt);
+    vfprintf(stdout,ef,ap); fflush(stdout);
+    free(ef); free(p); va_end(ap);
+}
+static char *newLbl(void){ char *l=calloc(20,1); sprintf(l,".L%d",lblCnt++); return l; }
+
+/* ───────────  OFFSET LOGIC (tabla en BYTES) ───────────*/
+
+static inline int effOff(SymbolEntry* e)
+{
+    if(e->symbolType==SYMBOL_PARAMETER){
+        int idx=(e->offset-4)/2;             /* 0,1,… */
+        return 16+idx*8;
+    }
+    int idx=(e->offset-8)/2;                 /* 0,1,… */
+    return -8-idx*8;
+}
+static inline void load(unsigned n,const char*r,SymbolEntry*e)
+{ int o=effOff(e);
+    out(n,o>=0?"mov %s,[rbp+%d]  ; %s\n":"mov %s,[rbp-%d]  ; %s\n",
+        r,o>=0?o:-o,e->name); }
+static inline void store(unsigned n,SymbolEntry*e)
+{ int o=effOff(e);
+    out(n,o>=0?"mov [rbp+%d],rax  ; %s\n":"mov [rbp-%d],rax  ; %s\n",
+        o>=0?o:-o,e->name); }
+
+static void filePro(void){
+    out(0,"section .text\n"
+          "global _start\n\n"
+          "_start:\n");
+    out(1,"call main\n"
+          "mov rdi, rax\n"
+          "mov rax, 60\n"
+          "syscall\n\n");
+}
+static void fileEpi(void){ out(0,"; end of file\n"); }
+static void epi(unsigned n){ out(n,"mov rsp, rbp\npop rbp\nret\n"); }
+
+static void gExpr (unsigned,Expression*);
+static void gStmt (unsigned,Statement*);
+static void gBlock(unsigned,Block*);
+static void gDecl (Declaration*);
+static void gDeclList(DeclarationList*);
+static void gArgsRev(unsigned,ListArguments*,int);
+
+
+static void gConst (unsigned n,Constant*c){ out(n,"mov rax,%d\n",*c->integer); }
+static void gIdent (unsigned n,const char*s){ load(n,"rax",lookupSymbol(symTable,s)); }
+
+
+static void gBinary(unsigned n,Expression*e,const char*op)
+{
+    gExpr(n,e->leftExpression);  out(n,"push rax\n");
+    gExpr(n,e->rightExpression); out(n,"pop rbx\n");
+    out(n,"%s rbx, rax\nmov rax, rbx\n",op);
+}
+static void gCompare(unsigned n,Expression*e,const char*jmp)
+{
+    char *T=newLbl(),*End=newLbl();
+    gExpr(n,e->leftExpression);  out(n,"push rax\n");
+    gExpr(n,e->rightExpression); out(n,"pop rbx\n");
+    out(n,"cmp rbx, rax\n%s %s\n",jmp,T);
+    out(n,"mov rax,0\njmp %s\n",End);
+    out(0,"%s:\n",T); out(n,"mov rax,1\n");
+    out(0,"%s:\n",End); free(T); free(End);
+}
+static void gArrayAcc(unsigned n,const char*arr,Expression*idx)
+{
+    gExpr(n,idx); out(n,"mov rbx, rax\n");
+    SymbolEntry*e=lookupSymbol(symTable,arr);
+    if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
+    int base=effOff(e);
+    out(n, base>=0?"lea rdi,[rbp+%d]\n":"lea rdi,[rbp-%d]\n",base>=0?base:-base);
+    out(n,"add rdi, rbx\nmov rax,[rdi]\n");
+}
+static void gLValue(unsigned n,Expression*lval)
+{
+    if(lval->type==EXPRESSION_IDENTIFIER)
+        store(n,lookupSymbol(symTable,*lval->identifier));
+    else{
+        out(n,"push rax\n");
+        gExpr(n,lval->indexExpression); out(n,"mov rbx, rax\n");
+        SymbolEntry*e=lookupSymbol(symTable,*lval->identifierArray);
+        if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
+        int base=effOff(e);
+        out(n, base>=0?"lea rdi,[rbp+%d]\n":"lea rdi,[rbp-%d]\n",base>=0?base:-base);
+        out(n,"add rdi, rbx\npop rax\nmov [rdi], rax\n");
+    }
+}
+static void gArgsRev(unsigned n,ListArguments*args,int k)
+{
+    if(k>1) gArgsRev(n,args->next,k-1);
+    gExpr(n,args->expression); out(n,"push rax\n");
+}
+static void gCall(unsigned n,const char*name,ListArguments*args)
+{
+    int c=0; for(ListArguments*t=args;t;t=t->next) ++c;
+    if(c) gArgsRev(n,args,c);
+    out(n,"call %s\n",name);
+    if(c) out(n,"add rsp,%d\n",c*8);
+}
+static void gExpr(unsigned n,Expression*e)
+{
+    switch(e->type){
+        case EXPRESSION_CONSTANT:       gConst(n,e->constant); break;
+        case EXPRESSION_IDENTIFIER:     gIdent(n,*e->identifier); break;
+        case EXPRESSION_ADDITION:       gBinary(n,e,"add"); break;
+        case EXPRESSION_SUBTRACTION:    gBinary(n,e,"sub"); break;
+        case EXPRESSION_MULTIPLICATION:{
+            gExpr(n,e->leftExpression);  out(n,"push rax\n");
+            gExpr(n,e->rightExpression); out(n,"pop rbx\nimul rax, rbx\n"); break; }
+        case EXPRESSION_DIVISION:
+        case EXPRESSION_MODULO:{
+            gExpr(n,e->leftExpression);  out(n,"push rax\n");
+            gExpr(n,e->rightExpression); out(n,"mov rbx, rax\npop rax\ncqo\nidiv rbx\n");
+            if(e->type==EXPRESSION_MODULO) out(n,"mov rax, rdx\n"); break; }
+        case EXPRESSION_OR:             gBinary(n,e,"or");  break;
+        case EXPRESSION_AND:            gBinary(n,e,"and"); break;
+        case EXPRESSION_EQUAL:          gCompare(n,e,"je");  break;
+        case EXPRESSION_NOT_EQUAL:      gCompare(n,e,"jne"); break;
+        case EXPRESSION_LESS:           gCompare(n,e,"jl");  break;
+        case EXPRESSION_GREATER:        gCompare(n,e,"jg");  break;
+        case EXPRESSION_LESS_EQUAL:     gCompare(n,e,"jle"); break;
+        case EXPRESSION_GREATER_EQUAL:  gCompare(n,e,"jge"); break;
+        case EXPRESSION_NOT:
+            gExpr(n,e->singleExpression);
+            out(n,"cmp rax,0\nmov rax,0\nsete al\n"); break;
+        case EXPRESSION_ARRAY_ACCESS:   gArrayAcc(n,*e->identifierArray,e->indexExpression); break;
+        case EXPRESSION_FUNCTION_CALL:  gCall(n,*e->identifierFunc,e->arguments); break;
+        case EXPRESSION_ASSIGNMENT:
+            gExpr(n,e->rightExpression); gLValue(n,e->leftExpression); break;
+        case EXPRESSION_PARENTHESIS:    gExpr(n,e->singleExpression); break;
+    }
+}
+
+static void gIf(unsigned n,StatementIf*s)
+{
+    char *Else=newLbl(),*End=newLbl();
+    gExpr(n,s->condition); out(n,"cmp rax,0\nje %s\n",s->hasElse?Else:End);
+    gBlock(n,s->thenBlock);
+    if(s->hasElse){
+        out(n,"jmp %s\n",End);
+        out(0,"%s:\n",Else); gBlock(n,s->elseBlock);
+    }
+    out(0,"%s:\n",End); free(Else); free(End);
+}
+static void gWhile(unsigned n,StatementWhile*w)
+{
+    char *Top=newLbl(),*End=newLbl();
+    out(0,"%s:\n",Top);
+    gExpr(n,w->condition); out(n,"cmp rax,0\nje %s\n",End);
+    gBlock(n,w->block);    out(n,"jmp %s\n",Top);
+    out(0,"%s:\n",End); free(Top); free(End);
+}
+static void gFor(unsigned n,StatementFor*f)
+{
+    char *Top=newLbl(),*End=newLbl();
+    if(f->hasInit) gExpr(n,f->init);
+    out(0,"%s:\n",Top);
+    if(f->hasCondition){
+        gExpr(n,f->condition); out(n,"cmp rax,0\nje %s\n",End);}
+    gBlock(n,f->block);
+    if(f->hasUpdate) gExpr(n,f->update);
+    out(n,"jmp %s\n",Top);
+    out(0,"%s:\n",End); free(Top); free(End);
+}
+
+static void gReturn(unsigned n,StatementReturn*r)
+{
+    if(r->hasExpression) gExpr(n,r->expression);
+    out(n,"jmp %s\n",fnEndLbl);
+}
+static void gStmt(unsigned n,Statement*s)
+{
+    switch(s->type){
+        case STATEMENT_DECLARATION:
+            if(s->variableSuffix->type==VARIABLE_SUFFIX_ASSIGNMENT){
+                gExpr(n,s->variableSuffix->expression);
+                store(n,lookupSymbol(symTable,*s->identifier));}
+            break;
+        case STATEMENT_IF:      gIf(n,s->statementIf); break;
+        case STATEMENT_WHILE:   gWhile(n,s->statementWhile); break;
+        case STATEMENT_FOR:     gFor(n,s->statementFor); break;
+        case STATEMENT_RETURN:  gReturn(n,s->statementReturn); break;
+        case STATEMENT_EXPRESSION: gExpr(n,s->statementExpression->expression); break;
+        case STATEMENT_BLOCK:   gBlock(n,s->block); break;
+        default: break;
+    }
+}
+static void gBlock(unsigned n,Block*b)
+{
+    for(Statements*t=b->statements;t;t=t->next){
+        gStmt(n,t->statement);
+        if(t->statement->type==STATEMENT_RETURN) break;
+    }
+}
+
+static void gFunction(Declaration*d)
+{
+    fnEndLbl=newLbl();
+    out(0,"%s:\n",*d->identifier);
+    out(1,"push rbp\nmov rbp, rsp\n");
+
+    int localWords = getCurrentOffset(symTable) - 8;
+    int localBytes = localWords * 4;          /* int=8B */
+    if(localBytes){
+        int aligned=(localBytes+15)&~15;
+        out(1,"sub rsp,%d\n",aligned);
+    }
+    gBlock(1,d->declarationSuffix->functionSuffix->block);
+
+    out(0,"%s:\n",fnEndLbl); epi(1);
+    free(fnEndLbl); fnEndLbl=NULL;
+}
+static void gDecl(Declaration*d){
+    if(d->declarationType==DECLARATION_EXTERN) return;
+    if(d->declarationSuffix->type==DECLARATION_SUFFIX_FUNCTION &&
+       d->declarationSuffix->functionSuffix->type==SUFFIX_BLOCK) gFunction(d);
+}
+static void gDeclList(DeclarationList*l){ for(;l;l=l->next) gDecl(l->declaration); }
+
+
+
+/* PUBLIC FUNCTIONS */
+
+void initializeGeneratorModule(){ logger=createLogger("Generator"); }
+void shutdownGeneratorModule () { if(logger) destroyLogger(logger); }
+
+void generate(CompilerState *state,SymbolTable *table)
+{
+    symTable=table; lblCnt=0;
+    filePro();
+    Program *root=(Program*)state->abstractSyntaxtTree;
+    if(root && root->type==PROGRAM_DECLARATIONS) gDeclList(root->declarationList);
+    fileEpi();
+}
+

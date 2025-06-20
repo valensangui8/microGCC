@@ -14,7 +14,6 @@ int foo() {
     int a = 1;
     a = 5 + bar(3);
     a = 1;
-    
 }
 
 int bar(int s) {

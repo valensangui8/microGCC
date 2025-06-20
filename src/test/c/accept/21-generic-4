@@ -2,6 +2,7 @@
 int calculateFactorial(int number);
 int calculateCombination(int n, int k);
 int pascalTriangle(int rows);
+extern int printPascalTriangle(int n);
 
 int main() {
     int n = 7;
