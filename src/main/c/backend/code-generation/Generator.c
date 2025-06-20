@@ -238,9 +238,16 @@ static void gFunction(Declaration*d){
     free(fnEndLbl); fnEndLbl=NULL;
 }
 
+static void gExtern(Declaration *d){
+    out(0,"extern %s\n",*d->identifier);
+}
+
 /* ──────── DECLARATIONS / FILE ──────── */
 static void gDecl(Declaration*d){
-    if(d->declarationType==DECLARATION_EXTERN) return;
+    if(d->declarationType==DECLARATION_EXTERN) {
+        gExtern(d);
+        return;
+    }
     if(d->declarationSuffix->type==DECLARATION_SUFFIX_FUNCTION &&
        d->declarationSuffix->functionSuffix->type==SUFFIX_BLOCK) gFunction(d);
 }
