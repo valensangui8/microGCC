@@ -99,6 +99,7 @@ typedef struct Declaration Declaration;
 typedef struct DeclarationList DeclarationList;
 typedef struct DeclarationSuffix DeclarationSuffix;
 typedef struct Expression Expression;
+typedef struct Expression ConstantExpression;
 typedef struct FunctionSuffix FunctionSuffix;
 typedef struct IdentifierSuffix IdentifierSuffix;
 typedef struct ListArguments ListArguments;
@@ -114,6 +115,7 @@ typedef struct StatementIf StatementIf;
 typedef struct StatementReturn StatementReturn;
 typedef struct StatementWhile StatementWhile;
 typedef struct VariableSuffix VariableSuffix;
+typedef struct VariableSuffix VariableSuffixPrima;
 typedef struct ParameterArray ParameterArray;
 
 typedef int ConstantInteger;
