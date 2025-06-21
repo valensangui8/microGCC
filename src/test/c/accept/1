@@ -1,14 +1,13 @@
 
 
 
-int fun(){
-    return 12/3+3;
 
-}
 
 
 int main(){
-    int a = fun() + 3;
 
-    return a;
+    if(1 == 10 == 0){
+        return 1;
+    }
+    return 0;
 }

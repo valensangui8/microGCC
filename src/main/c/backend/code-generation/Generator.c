@@ -141,29 +141,6 @@ static void gArrayAcc(unsigned n,const char*arr,Expression*idx){
 
 
 
-static void gLValue(unsigned n,Expression*lval){
-    if(lval->type==EXPRESSION_IDENTIFIER){
-        store(n,lookupSymbol(symTable,*lval->identifier, genFn));
-        return;
-    }
-
-    // Manejamos ARRAYS: 
-
-    out(n,"push rax\n");
-    gExpr(n,lval->indexExpression);
-    out(n,"mov rbx, rax\n");
-    SymbolEntry*e=lookupSymbol(symTable,*lval->identifierArray, genFn);
-    if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
-    gArrayBase(n,e);
-    out(n,"add rdi, rbx\npop rax\n");
-
-    if (e->dataType == TYPE_INT) {
-        out(n, "mov [rdi], rax\n");
-    } else if (e->dataType == TYPE_CHAR) {
-        out(n, "mov byte [rdi], al\n");
-    }
-
-}
 
 /* --- llamadas a funciones--- */
 static void gFunctionCallArgs(unsigned n,ListArguments*a , int k){
@@ -198,6 +175,7 @@ static void gBinary(unsigned n,Expression*e,const char*op){
     out(n,"%s rbx, rax\n",op);            //*   operacion leftExpression, rightExpresion
     out(n, "mov rax, rbx\n");             //*   Dejo resultado en RAX
 }
+
 static void gCompare(unsigned n,Expression*e,const char*jmp){
     char *T=newLbl(),*End=newLbl();
     gExpr(n,e->leftExpression);
@@ -206,8 +184,9 @@ static void gCompare(unsigned n,Expression*e,const char*jmp){
     out(n,"pop rbx\n");
     out(n,"cmp rbx, rax\n");                // En RBX esta leftExpression, en rax rightExpression
     out(n, "%s %s\n",jmp,T);
-    out(n,"mov rax,0\njmp %s\n",End);       // No se cumplio la condicion de salto. RAX <- 0.
-    out(0,"%s:\n",T);           
+    out(n,"mov rax,0\n");                    // No se cumplio la condicion de salto. RAX <- 0.
+    out(n, "jmp %s\n",End);
+    out(0,"%s:\n",T);
     out(n,"mov rax,1\n");                   // Se cumplio la condicion de salto. RAX <- 1.
     out(0,"%s:\n",End);                   
     free(T);
@@ -241,6 +220,37 @@ static void gMultExpression(unsigned n, Expression * e){
     gExpr(n,e->rightExpression);
     out(n,"pop rbx\n");
     out(n,"imul rax, rbx\n");
+}
+
+
+
+static void gLValueArray(unsigned n, Expression * lval){
+    out(n,"push rax\n");                     // guardar la expresion computada (lo que esta despues del = en la asignacion).
+    gExpr(n,lval->indexExpression);           //  evalua la expresion del indice y lo deja en RAX.
+    out(n,"mov rbx, rax\n");                //  RBX --> indice del ARRAY
+    SymbolEntry*e=lookupSymbol(symTable,*lval->identifierArray, genFn);
+    if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n"); // Como los INTS ocupan 8Bytes, hace RBX = 8*RBX
+    gArrayBase(n,e);                            // deja en RDI la dir. del comienzo del array
+    out(n,"add rdi, rbx\n");                // Le sumo el offset del indice a RDI
+    out(n, "pop rax\n");                    // recupero la expresion de la derecha
+
+    if (e->dataType == TYPE_INT) {
+        out(n, "mov [rdi], rax\n");         // Caso 1, es INT por lo que muevo todo el registro al array (8 bytes)
+    } else if (e->dataType == TYPE_CHAR) {
+        out(n, "mov byte [rdi], al\n");     // Caso 2,  es CHAR, por lo que muevo solo un BYTE
+    }
+}
+
+/*
+ *  A esta funcion le llega con la expresion de la derecha ya computada.
+ *  Es decir, RAX tiene el resultado que se debe asignar.
+ */
+static void gLValue(unsigned n,Expression*lval){
+    if(lval->type==EXPRESSION_IDENTIFIER){
+        store(n,lookupSymbol(symTable,*lval->identifier, genFn));
+        return;
+    }
+    gLValueArray(n, lval);
 }
 
 static void gAssignmentExpression(unsigned n, Expression * e){
