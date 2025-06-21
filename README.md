@@ -75,7 +75,7 @@ En `script/ubuntu/asm/` encontrarás dos lanzadores:
   Ejemplo: para `src/test/c/accept/02-extern-declaration` se invoca:
 
 ```bash
-./script/ubuntu/asm/microGCC.sh 01-functions
+./script/ubuntu/asm/microGCC.sh 02-extern-declaration
 ```
 
 
