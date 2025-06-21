@@ -1,12 +1,33 @@
 
 
-int test();
+int x;
+int arr[10];
 
 
-int test(){
-    int a = 1;
+int init(){
+    int i = 10;
+    /*while(i = i -1){
+        arr[10-i] = i;
+    }*/
+    /*while(i > 0 ){
+        arr[10-i] = i;
+        i = i-1;
+    }*/
+
+    x = 3;
     return 0;
 }
 
-int a;
+int fun(int algo){
+    return arr[algo];
+}
+
+int main(){
+
+    init();
+    return fun(x);
+}
+
+
+
 

@@ -39,16 +39,32 @@ static inline int effOff(SymbolEntry*e){
 static inline void load(unsigned n,const char*reg,SymbolEntry*e){
     int o=effOff(e);
 
-    if(/*e->symbolType == SYMBOL_PARAMETER &&*/ e->isArray){
-        out(n,"lea %s,[rbp-%d]  ; %s\n",reg,-o,e->name);
-        return;  //@TODO , esto, me rompe algo???
+    char * asmInstruction = e->isArray ? "lea":"mov";
+
+    if(e->functionName == NULL){
+        out(n,"%s %s,[%s]\n",asmInstruction , reg,e->name);
+        return;
     }
 
-    out(n,o>=0? "mov %s,[rbp+%d]  ; %s\n":"mov %s,[rbp-%d]  ; %s\n",
-        reg,o>=0?o:-o,e->name);
+//    if(/*e->symbolType == SYMBOL_PARAMETER &&*/ e->isArray){
+//        out(n,"lea %s,[rbp-%d]  ; %s\n",reg,-o,e->name);
+//        return;  //@TODO , esto, me rompe algo???
+//    }
+//
+//    out(n,o>=0? "mov %s,[rbp+%d]  ; %s\n":"mov %s,[rbp-%d]  ; %s\n",
+//        reg,o>=0?o:-o,e->name);
+
+    out(n,o>=0? "%s %s,[rbp+%d]  ; %s\n":"%s %s,[rbp-%d]  ; %s\n",
+        asmInstruction,reg,o>=0?o:-o,e->name);  //@todo rompi algo???
 }
 static inline void store(unsigned n,SymbolEntry*e){
     int o=effOff(e);
+
+    if(e->functionName == NULL){
+        out(n,"mov [%s], rax\n", e->name);
+        return;
+    }
+
     out(n,o>=0? "mov [rbp+%d],rax  ; %s\n":"mov [rbp-%d],rax  ; %s\n",
         o>=0?o:-o,e->name);
 }
@@ -58,37 +74,46 @@ static void filePro(void){
     out(0,"section .text\nglobal _start\n\n_start:\n");
     out(1,"call main\nmov rdi, rax\nmov rax, 60\nsyscall\n\n");
 }
-static void fileEpi(void){
-   /* todo arreglar globales
-    * if (symTable == NULL) {
+
+
+static void gGlobalData(){
+    if (symTable == NULL) {
         // Error: la tabla de símbolos no fue inicializada. todo add log
         return;
     }
-
     SymbolEntry * entry = symTable->head;
-    out(0, "section .data\n");
-
     while (entry != NULL) {
-        // Solo procesamos símbolos que no pertenecen a una función (i.e., variables globales)
+// Solo procesamos símbolos que no pertenecen a una función (i.e., variables globales)
         if (entry->functionName == NULL) {
             const char * varName = entry->name; // nombre original del símbolo
-            const SymbolType type = entry->dataType;
+            if(entry->symbolType == SYMBOL_VARIABLE){
+                switch (entry->dataType) {
+                    case TYPE_CHAR:
+                    out(1, "%s resb %d\n", varName, entry->isArray ? entry->arraySize*1 : 1 ); // 1 byte
 
-            switch (type) {
-                case TYPE_CHAR:
-                    out(1, "%s: db 0\n", varName); // 1 byte
                     break;
-                case TYPE_INT:
-                    out(1, "%s: dq 0\n", varName); // 8 bytes (quadword)
+                    case TYPE_INT:
+                    out(1, "%s resq %d\n", varName, entry->isArray ? entry->arraySize*8 : 1 ); // 1 byte
                     break;
-                default:
+                    default:
                     out(1, "; Warning: tipo no reconocido para %s\n", varName);
                     break;
+                }
             }
         }
         entry = entry->next;
-    }
-*/
+}
+}
+
+
+static void fileEpi(void){
+   // todo arreglar globales
+
+
+    SymbolEntry * entry = symTable->head;
+    out(0, "section .bss\n");
+    gGlobalData();
+
     out(0, "; end of file\n");
 }
 
@@ -296,6 +321,7 @@ void generate(CompilerState *st,SymbolTable *tbl){
     symTable=tbl; lblCnt=0;
     filePro();
     Program *root=(Program*)st->abstractSyntaxtTree;
+
     if(root && root->type==PROGRAM_DECLARATIONS) gDeclList(root->declarationList);
     fileEpi();
 }

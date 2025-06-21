@@ -99,7 +99,6 @@ typedef struct Declaration Declaration;
 typedef struct DeclarationList DeclarationList;
 typedef struct DeclarationSuffix DeclarationSuffix;
 typedef struct Expression Expression;
-typedef struct Expression ConstantExpression;
 typedef struct FunctionSuffix FunctionSuffix;
 typedef struct IdentifierSuffix IdentifierSuffix;
 typedef struct ListArguments ListArguments;

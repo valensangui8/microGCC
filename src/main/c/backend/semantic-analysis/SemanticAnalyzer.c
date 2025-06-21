@@ -471,9 +471,28 @@ static bool _analyzeStatement(Statement* stmt) {
     return true;
 }
 
+static boolean canAssignToLValue(Expression * leftExpression){
+    if (leftExpression->type == EXPRESSION_IDENTIFIER) {
+        SymbolEntry *lhsSym =
+                lookupSymbol(_context->symbolTable,
+                             *leftExpression->identifier,
+                             CUR_FN);
+        if (lhsSym != NULL && lhsSym->isArray) {
+            return false;
+        }
+    }
+    return true;
+}
+
 static DataType _analyzeExpression(Expression* expr) {
     switch (expr->type) {
         case EXPRESSION_ASSIGNMENT: {
+
+            if(!canAssignToLValue(expr->leftExpression)){
+                _reportError(SEMANTIC_ERROR_TYPE_MISMATCH, "assignment of array");
+                return -1;
+            }
+
             DataType leftType = _analyzeExpression(expr->leftExpression);
             DataType rightType = _analyzeExpression(expr->rightExpression);
 
