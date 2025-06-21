@@ -4,20 +4,33 @@
 /* ──────── ESTADO GLOBAL ──────── */
 static Logger      *logger   = NULL;
 static SymbolTable *symTable = NULL;
-static int          lblCnt   = 0;
+static int          labelCount   = 0;
 static char        *fnEndLbl = NULL;
 static char  *genFn = NULL;
-static int          totalW   = 0;   /* palabras (2 B) de la función */
+
+
+
+static void gExpr(unsigned,Expression*);
+static void gStmt(unsigned,Statement*);
+static void gBlock(unsigned,Block*);
+static void gDeclList(DeclarationList*);
+static void gArgsRev(unsigned,ListArguments*,int);
 
 /* ──────── UTILIDADES DE SALIDA ──────── */
-static char *pad(unsigned n){ return indentation(' ',n,4); }
+static char *pad(unsigned n){ return 
+    indentation(' ',n,4); 
+}
+
 static void out(unsigned n,const char *fmt,...){
     va_list ap; va_start(ap,fmt);
     char *p=pad(n),*ef=concatenate(2,p,fmt);
     vfprintf(stdout,ef,ap); fflush(stdout);
     free(ef); free(p); va_end(ap);
 }
-static char *newLbl(void){ char*l=calloc(20,1); sprintf(l,".L%d",lblCnt++); return l; }
+static char *newLbl(void){ 
+    char*l=calloc(20,1); sprintf(l,".L%d",labelCount++); 
+    return l; 
+}
 
 
 
@@ -28,8 +41,6 @@ static const char * getInstructionSize(SymbolEntry * e){
 
 
 static inline void load(unsigned n,const char*reg,SymbolEntry*e){
-    //int o=effOff(e);
-
     int o = e->offset;
     char * asmInstruction = e->isArray ? "lea":(e->dataType == TYPE_CHAR ? "movzx":"mov");
     const char * size = getInstructionSize(e);
@@ -42,10 +53,10 @@ static inline void load(unsigned n,const char*reg,SymbolEntry*e){
     out(n,o>=0? "%s %s,[rbp+%d]  ; %s\n":"%s %s,[rbp-%d]  ; %s\n",
         asmInstruction,reg,o>=0?o:-o,e->name);  //@todo rompi algo???
 }
+
 static inline void store(unsigned n,SymbolEntry*e){
     int o = e->offset;
     const char * size = getInstructionSize(e);
-
 
     if(e->functionName == NULL){
         out(n,"mov %s [%s], rax\n",size, e->name);
@@ -56,7 +67,6 @@ static inline void store(unsigned n,SymbolEntry*e){
         o>=0?o:-o,e->name);
 }
 
-/* ──────── PRO/EPÍLOGO DE ARCHIVO ──────── */
 static void filePro(void){
     out(0,"section .text\nglobal _start\n\n_start:\n");
     out(1,"call main\nmov rdi, rax\nmov rax, 60\nsyscall\n\n");
@@ -64,26 +74,24 @@ static void filePro(void){
 
 
 static void gGlobalData(){
-    if (symTable == NULL) {
-        // Error: la tabla de símbolos no fue inicializada. todo add log
-        return;
-    }
+
     SymbolEntry * entry = symTable->head;
     while (entry != NULL) {
-// Solo procesamos símbolos que no pertenecen a una función (i.e., variables globales)
+            // Solo procesamos símbolos que no pertenecen a una función (i.e., variables globales)
         if (entry->functionName == NULL) {
             const char * varName = entry->name; // nombre original del símbolo
             if(entry->symbolType == SYMBOL_VARIABLE){
                 switch (entry->dataType) {
                     case TYPE_CHAR:
-                    out(1, "%s resb %d\n", varName, entry->isArray ? entry->arraySize*1 : 1 ); // 1 byte
+                    out(1, "%s resb %d\n", varName, entry->isArray ? entry->arraySize : 1 ); // resb = 1 byte
 
                     break;
                     case TYPE_INT:
-                    out(1, "%s resq %d\n", varName, entry->isArray ? entry->arraySize : 1 ); // 1 byte
+                    out(1, "%s resq %d\n", varName, entry->isArray ? entry->arraySize : 1 ); // resq = 8 bytes
                     break;
+                    
                     default:
-                    out(1, "; Warning: tipo no reconocido para %s\n", varName);
+                    logError(logger, 1, "; Error: tipo no reconocido para %s\n", varName);
                     break;
                 }
             }
@@ -94,43 +102,17 @@ static void gGlobalData(){
 
 
 static void fileEpi(void){
-   // todo arreglar globales
 
-
-    SymbolEntry * entry = symTable->head;
     out(0, "section .bss\n");
     gGlobalData();
-
     out(0, "; end of file\n");
 }
 
-static void epi(unsigned n){ out(n,"mov rsp, rbp\npop rbp\nret\n"); }
-
-/* ──────── ADELANTOS ──────── */
-static void gExpr(unsigned,Expression*);
-static void gStmt(unsigned,Statement*);
-static void gBlock(unsigned,Block*);
-static void gDeclList(DeclarationList*);
-static void gArgsRev(unsigned,ListArguments*,int);
-
-/* ──────── EXPRESIONES ──────── */
-static void gConst(unsigned n,Constant*c){ out(n,"mov rax,%d\n",*c->integer); }
-static void gIdent(unsigned n,const char*s){ load(n,"rax",lookupSymbol(symTable,s, genFn)); }
-
-static void gBinary(unsigned n,Expression*e,const char*op){
-    gExpr(n,e->leftExpression); out(n,"push rax\n");
-    gExpr(n,e->rightExpression);out(n,"pop rbx\n");
-    out(n,"%s rbx, rax\nmov rax, rbx\n",op);
+static void funEpi(unsigned n){
+    out(n,"mov rsp, rbp\npop rbp\nret\n");
 }
-static void gCompare(unsigned n,Expression*e,const char*jmp){
-    char *T=newLbl(),*End=newLbl();
-    gExpr(n,e->leftExpression); out(n,"push rax\n");
-    gExpr(n,e->rightExpression);out(n,"pop rbx\n");
-    out(n,"cmp rbx, rax\n%s %s\n",jmp,T);
-    out(n,"mov rax,0\njmp %s\n",End);
-    out(0,"%s:\n",T); out(n,"mov rax,1\n");
-    out(0,"%s:\n",End); free(T); free(End);
-}
+
+
 
 /* --- acceso a arrays --- */
 static void gArrayBase(unsigned n, SymbolEntry *e) {
@@ -191,6 +173,40 @@ static void gCall(unsigned n,const char*name,ListArguments*a){
     if(c) gArgsRev(n,a,c);
     out(n,"call %s\n",name);
     if(c) out(n,"add rsp,%d\n",c*8);
+}
+
+
+/* Los resultados de las expresiones se ponen en rax*/
+
+static void gConst(unsigned n,Constant*c){
+    out(n,"mov rax,%d\n",*c->integer);
+}
+
+static void gIdent(unsigned n,const char*s){
+    load(n,"rax",lookupSymbol(symTable,s, genFn));
+}
+
+static void gBinary(unsigned n,Expression*e,const char*op){
+    gExpr(n,e->leftExpression);
+    out(n,"push rax\n");                   //*  Resultado de haber llamado a gExpr(n,e->leftExpression);
+    gExpr(n,e->rightExpression);            //*  Resultado en RAX
+    out(n,"pop rbx\n");                    //*  Resultado de la e->leftExpression en RBX
+    out(n,"%s rbx, rax\n",op);            //*   operacion leftExpression, rightExpresion
+    out(n, "mov rax, rbx\n");             //*   Dejo resultado en RAX
+}
+static void gCompare(unsigned n,Expression*e,const char*jmp){
+    char *T=newLbl(),*End=newLbl();
+    gExpr(n,e->leftExpression);
+    out(n,"push rax\n");
+    gExpr(n,e->rightExpression);
+    out(n,"pop rbx\n");
+    out(n,"cmp rbx, rax\n%s %s\n",jmp,T);
+    out(n,"mov rax,0\njmp %s\n",End);
+    out(0,"%s:\n",T);
+    out(n,"mov rax,1\n");
+    out(0,"%s:\n",End);
+    free(T);
+    free(End);
 }
 
 /* --- dispatcher --- */
@@ -285,26 +301,6 @@ static void gBlock(unsigned n,Block*b){
 }
 
 ///* ──────── FUNCIÓN ──────── */
-//static void gFunction(Declaration*d){
-//    char * callersFunctionName = genFn;
-//    genFn = *d->identifier;
-//    totalBytes = getCurrentOffset(symTable);
-//    fnEndLbl = newLbl();
-//
-//    out(0,"%s:\n",*d->identifier);
-//    out(1,"push rbp\nmov rbp, rsp\n");
-//
-//    int localBytes = (totalW - 8)*4;
-//    if(localBytes){
-//        int aligned=(localBytes+15)&~15;
-//        out(1,"sub rsp,%d\n",aligned);
-//    }
-//    gBlock(1,d->declarationSuffix->functionSuffix->block);
-//
-//    out(0,"%s:\n",fnEndLbl); epi(1);
-//    free(fnEndLbl); fnEndLbl=NULL;
-//    genFn = callersFunctionName;
-//}
 
 static void gFunction(Declaration* d) {
     char* callersFunctionName = genFn;
@@ -323,7 +319,7 @@ static void gFunction(Declaration* d) {
         }
     }
 
-    int localBytes = -minOffset ;  //todo es -8??????????????????????????????????????????????????????????????????????
+    int localBytes = -minOffset ;  
     if (localBytes > 0) {
         int aligned = (localBytes + 15) & ~15;
         out(1, "sub rsp, %d\n", aligned);
@@ -332,7 +328,7 @@ static void gFunction(Declaration* d) {
     gBlock(1, d->declarationSuffix->functionSuffix->block);
 
     out(0, "%s:\n", fnEndLbl);
-    epi(1);
+    funEpi(1);
     free(fnEndLbl); fnEndLbl = NULL;
     genFn = callersFunctionName;
 }
@@ -358,7 +354,7 @@ void initializeGeneratorModule(){ logger=createLogger("Generator"); }
 void shutdownGeneratorModule () { if(logger) destroyLogger(logger); }
 
 void generate(CompilerState *st,SymbolTable *tbl){
-    symTable=tbl; lblCnt=0;
+    symTable=tbl; labelCount=0;
 
     printSymbolTable(symTable);
 
