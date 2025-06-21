@@ -16,6 +16,8 @@ static bool _analyzeArguments(ListArguments* args, SymbolEntry* function);
 static void _reportError(SemanticError error, const char* details);
 static bool _checkTypeCompatibility(DataType expected, DataType actual);
 
+#define ERROR -1
+
 /* PUBLIC FUNCTIONS */
 
 #define CUR_FN (_context->currentFunctionName)
@@ -50,6 +52,7 @@ bool analyzeSemantics(CompilerState* compilerState) {
     _context->currentFunctionReturnType = TYPE_INT;
     _context->currentFunctionName = NULL;
     _context->functionHasReturn = false;
+    compilerState->st = _context->symbolTable;
 
     // Analyze the program
     bool success = _analyzeProgram(compilerState->abstractSyntaxtTree);
@@ -80,12 +83,6 @@ bool analyzeSemantics(CompilerState* compilerState) {
     return success;
 }
 
-SymbolTable* getSymbolTable() {
-    if (_context != NULL) {
-        return _context->symbolTable;
-    }
-    return NULL;
-}
 
 /* PRIVATE FUNCTIONS */
 
@@ -109,7 +106,7 @@ static bool _analyzeDeclarationList(DeclarationList* list) {
 
 static bool _analyzeDeclarationSuffixVariable(Declaration * decl, SymbolEntry * existing){
     // Variable declaration - no redeclaration allowed
-    if (existing != NULL) {          //todo cambiar aca (y capaz otro semantic_error_redeclared) para que te deje cambiar identificadores globales en funciones.
+    if (existing != NULL) {
         _reportError(SEMANTIC_ERROR_REDECLARED_IDENTIFIER, *decl->identifier);
         return false;
     }
@@ -151,6 +148,11 @@ static bool _analyzeDeclarationSuffixFunction(Declaration * decl, SymbolEntry * 
     bool isDefinition = (decl->declarationSuffix->functionSuffix->type == SUFFIX_BLOCK);
     bool isExtern = (decl->declarationType == DECLARATION_EXTERN);
 
+    if (isExtern && isDefinition) {
+        _reportError(SEMANTIC_ERROR_EXTERN_WITH_BODY, *decl->identifier);
+        return false;
+    }
+
     if (existing != NULL) {
         // Function already exists - check compatibility
         if (existing->symbolType != SYMBOL_FUNCTION) {
@@ -165,8 +167,18 @@ static bool _analyzeDeclarationSuffixFunction(Declaration * decl, SymbolEntry * 
         }
 
         // If this is a definition and function was already defined (has non-negative offset)
-        if (isDefinition && existing->offset >= 0) {
+        if (isDefinition && existing->functionStatus == DEFINED_FUN) {
             _reportError(SEMANTIC_ERROR_REDECLARED_IDENTIFIER, *decl->identifier);
+            return false;
+        }
+
+        if (isExtern && existing->functionStatus == DEFINED_FUN) {
+            _reportError(SEMANTIC_ERROR_EXTERN_FUNCTION_DEFINITION, *decl->identifier);
+            return false;
+        }
+
+        if (isDefinition && existing->functionStatus == EXTERN_FUN) {
+            _reportError(SEMANTIC_ERROR_EXTERN_FUNCTION_DEFINITION, *decl->identifier);
             return false;
         }
 
@@ -177,11 +189,9 @@ static bool _analyzeDeclarationSuffixFunction(Declaration * decl, SymbolEntry * 
     } else {
         // First time seeing this function - add to symbol table
         FunctionStatus fs = isDefinition ? DEFINED_FUN: (isExtern ? EXTERN_FUN: DECLARED_BUT_NOT_DEFINED_FUN);
-
         addFunction(_context->symbolTable, *decl->identifier, decl->dataType, paramCount, fs);
 
     }
-
     // Analyze function body if present
     if (isDefinition) {
         return _analyzeFunction(decl);
@@ -230,7 +240,7 @@ static bool _analyzeFunction(Declaration* funcDecl) {
             }
 
             if(param->array->type == PARAMETER_ARRAY_BRACKETS){
-                addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 1 , UNKNOWN_ARRAY_SIZE, CUR_FN); /*TODO no sabemos el array size*/
+                addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 1 , UNKNOWN_ARRAY_SIZE, CUR_FN);
             }else{
                 addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 0 ,0, CUR_FN);
             }
@@ -310,7 +320,7 @@ static bool _analyzeStatement(Statement* stmt) {
 
         case STATEMENT_IF: {
             DataType condType = _analyzeExpression(stmt->statementIf->condition);
-            if (condType == -1) return false;
+            if (condType == ERROR) return false;
 
             if (!_analyzeBlock(stmt->statementIf->thenBlock)) return false;
 
@@ -322,7 +332,7 @@ static bool _analyzeStatement(Statement* stmt) {
 
         case STATEMENT_WHILE: {
             DataType condType = _analyzeExpression(stmt->statementWhile->condition);
-            if (condType == -1) return false;
+            if (condType == ERROR) return false;
 
             if (!_analyzeBlock(stmt->statementWhile->block)) return false;
             break;
@@ -331,17 +341,17 @@ static bool _analyzeStatement(Statement* stmt) {
         case STATEMENT_FOR: {
             if (stmt->statementFor->hasInit) {
                 DataType initType = _analyzeExpression(stmt->statementFor->init);
-                if (initType == -1) return false;
+                if (initType == ERROR) return false;
             }
 
             if (stmt->statementFor->hasCondition) {
                 DataType condType = _analyzeExpression(stmt->statementFor->condition);
-                if (condType == -1) return false;
+                if (condType == ERROR) return false;
             }
 
             if (stmt->statementFor->hasUpdate) {
                 DataType updateType = _analyzeExpression(stmt->statementFor->update);
-                if (updateType == -1) return false;
+                if (updateType == ERROR) return false;
             }
 
             if (!_analyzeBlock(stmt->statementFor->block)) return false;
@@ -353,7 +363,7 @@ static bool _analyzeStatement(Statement* stmt) {
 
             if (stmt->statementReturn->hasExpression) {
                 DataType exprType = _analyzeExpression(stmt->statementReturn->expression);
-                if (exprType == -1) return false;
+                if (exprType == ERROR) return false;
 
                 if (!_checkTypeCompatibility(_context->currentFunctionReturnType, exprType)) {
                     _reportError(SEMANTIC_ERROR_RETURN_TYPE_MISMATCH, _context->currentFunctionName);
@@ -365,7 +375,7 @@ static bool _analyzeStatement(Statement* stmt) {
 
         case STATEMENT_EXPRESSION: {
             DataType type = _analyzeExpression(stmt->statementExpression->expression);
-            if (type == -1) return false;
+            if (type == ERROR) return false;
             break;
         }
 
@@ -394,17 +404,17 @@ static DataType _analyzeExpression(Expression* expr) {
         case EXPRESSION_ASSIGNMENT: {
             if(!canAssignToLValue(expr->leftExpression)){
                 _reportError(SEMANTIC_ERROR_TYPE_MISMATCH, "assignment of array");
-                return -1;
+                return ERROR;
             }
 
             DataType leftType = _analyzeExpression(expr->leftExpression);
             DataType rightType = _analyzeExpression(expr->rightExpression);
 
-            if (leftType == -1 || rightType == -1) return -1;
+            if (leftType == ERROR || rightType == ERROR) return ERROR;
 
             if (!_checkTypeCompatibility(leftType, rightType)) {
                 _reportError(SEMANTIC_ERROR_TYPE_MISMATCH, "assignment");
-                return -1;
+                return ERROR;
             }
 
             return leftType;
@@ -424,12 +434,12 @@ static DataType _analyzeExpression(Expression* expr) {
         case EXPRESSION_MODULO: {
             DataType leftType = _analyzeExpression(expr->leftExpression);
             DataType rightType = _analyzeExpression(expr->rightExpression);
-            if (leftType == -1 || rightType == -1) return -1;
+            if (leftType == ERROR || rightType == ERROR) return ERROR;
             return TYPE_INT;
         }
         case EXPRESSION_NOT: {
             DataType type = _analyzeExpression(expr->singleExpression);
-            if (type == -1) return -1;
+            if (type == ERROR) return ERROR;
             return TYPE_INT; // NOT operation returns int
         }
 
@@ -437,7 +447,7 @@ static DataType _analyzeExpression(Expression* expr) {
             SymbolEntry* symbol = lookupSymbol(_context->symbolTable, *expr->identifier, CUR_FN);
             if (symbol == NULL) {
                 _reportError(SEMANTIC_ERROR_UNDECLARED_VARIABLE, *expr->identifier);
-                return -1;
+                return ERROR;
             }
             return symbol->dataType;
         }
@@ -452,20 +462,20 @@ static DataType _analyzeExpression(Expression* expr) {
             SymbolEntry* symbol = lookupSymbol(_context->symbolTable, *expr->identifierArray, CUR_FN);
             if (symbol == NULL) {
                 _reportError(SEMANTIC_ERROR_UNDECLARED_VARIABLE, *expr->identifierArray);
-                return -1;
+                return ERROR;
             }
 
             if (!symbol->isArray) {
                 _reportError(SEMANTIC_ERROR_NON_ARRAY_INDEXED, *expr->identifierArray);
-                return -1;
+                return ERROR;
             }
 
             DataType indexType = _analyzeExpression(expr->indexExpression);
-            if (indexType == -1) return -1;
+            if (indexType == ERROR) return ERROR;
 
             if (indexType != TYPE_INT) {
                 _reportError(SEMANTIC_ERROR_ARRAY_INDEX_TYPE, *expr->identifierArray);
-                return -1;
+                return ERROR;
             }
 
             return symbol->dataType;
@@ -475,12 +485,12 @@ static DataType _analyzeExpression(Expression* expr) {
             SymbolEntry* function = lookupSymbol(_context->symbolTable, *expr->identifierFunc, CUR_FN);
             if (function == NULL) {
                 _reportError(SEMANTIC_ERROR_UNDECLARED_FUNCTION, *expr->identifierFunc);
-                return -1;
+                return ERROR;
             }
 
             if (function->symbolType != SYMBOL_FUNCTION) {
                 _reportError(SEMANTIC_ERROR_UNDECLARED_FUNCTION, *expr->identifierFunc);
-                return -1;
+                return ERROR;
             }
 
             // Count arguments
@@ -489,25 +499,24 @@ static DataType _analyzeExpression(Expression* expr) {
             while (args != NULL) {
                 argCount++;
                 DataType argType = _analyzeExpression(args->expression);
-                if (argType == -1) return -1;
+                if (argType == ERROR) return ERROR;
                 args = args->next;
             }
 
             if (argCount != function->paramCount) {
                 _reportError(SEMANTIC_ERROR_WRONG_ARGUMENT_COUNT, *expr->identifierFunc);
-                return -1;
+                return ERROR;
             }
 
             return function->dataType;
         }
     }
 
-    return -1; // Should not reach here
+    return ERROR; // Should not reach here
 }
 
 static void _reportError(SemanticError error, const char* details) {
     _context->hasErrors = true;
-
     switch (error) {
         case SEMANTIC_ERROR_UNDECLARED_VARIABLE:
             logError(_logger, "Undeclared variable: %s", details);
@@ -545,6 +554,13 @@ static void _reportError(SemanticError error, const char* details) {
         case SEMANTIC_ERROR_ARRAY_SIZE:
             logError(_logger, "Invalid array size for: %s", details);
             break;
+        case SEMANTIC_ERROR_EXTERN_WITH_BODY:
+            logError(_logger, "Extern function cannot have a body: %s", details);
+            break;
+        case SEMANTIC_ERROR_EXTERN_FUNCTION_DEFINITION:
+            logError(_logger, "Extern function cannot be defined in the same file: %s", details);
+            break;
+
     }
 }
 

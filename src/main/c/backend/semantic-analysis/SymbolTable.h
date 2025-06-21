@@ -29,15 +29,19 @@ typedef struct SymbolEntry {
     DataType   dataType;
     SymbolType symbolType;
     char*      functionName;        //NULL => global; otro => nombre de la función
-    int offset;                     /* variables / parámetros               */
-    FunctionStatus functionStatus;
-    int paramCount;                 /* funciones                            */
-    int isArray;
-    int arraySize;                  /* UNKNOWN_ARRAY_SIZE si no se conoce   */
-
+    union{
+        struct {
+            int paramCount;                 /* funciones */
+            FunctionStatus functionStatus;
+        };
+        struct {
+            int offset;                     /* variables / parámetros */
+            int isArray;
+            int arraySize;                  /* UNKNOWN_ARRAY_SIZE si no se conoce*/
+        };
+    };
     struct SymbolEntry* next;
 } SymbolEntry;
-
 
 
 typedef struct {

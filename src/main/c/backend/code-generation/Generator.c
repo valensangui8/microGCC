@@ -10,16 +10,65 @@ static char  *genFn = NULL;
 
 
 
-static void gExpr(unsigned,Expression*);
-static void gStmt(unsigned,Statement*);
-static void gBlock(unsigned,Block*);
-static void gDeclList(DeclarationList*);
-static void gFunctionCallArgs(unsigned,ListArguments*,int);
+/* ──────── STATIC PROTOTYPES ────────────────────────────────────────────── */
+
+/* utilidades de salida / helpers generales */
+static char  *pad(unsigned n);
+static void   out(unsigned n, const char *fmt, ...);
+static char  *newLbl(void);
+static const char *getInstructionSize(SymbolEntry *e);
+static inline void load (unsigned n, const char *reg, SymbolEntry *e);
+static inline void store(unsigned n, SymbolEntry *e);
+
+/* secciones y prólogos/epílogos de archivo / función */
+static void filePro(void);
+static void gGlobalData(void);
+static void fileEpi(void);
+static void funEpi(unsigned n);
+
+/* acceso y manipulación de arrays */
+static void gArrayBase(unsigned n, SymbolEntry *e);
+static void gArrayAcc (unsigned n, const char *arr, Expression *idx);
+
+/* llamadas a funciones */
+static void gFunctionCallArgs(unsigned n, ListArguments *a, int k);
+static void gCall            (unsigned n, const char *name, ListArguments *argList);
+
+/* generación de expresiones */
+static void gConstant           (unsigned n, Constant *c);
+static void gIdentifier         (unsigned n, const char *name);
+static void gBinary             (unsigned n, Expression *e, const char *op);
+static void gCompare            (unsigned n, Expression *e, const char *jmp);
+static void gNotExpression      (unsigned n, Expression *e);
+static void gDivModExpression   (unsigned n, Expression *e);
+static void gMultExpression     (unsigned n, Expression *e);
+static void gLValueArray        (unsigned n, Expression *lval);
+static void gLValue             (unsigned n, Expression *lval);
+static void gAssignmentExpression(unsigned n, Expression *e);
+static void gExpr               (unsigned n, Expression *e);
+
+/* generación de sentencias / control de flujo */
+static void gIf        (unsigned n, StatementIf    *s);
+static void gWhile     (unsigned n, StatementWhile *w);
+static void gFor       (unsigned n, StatementFor   *f);
+static void gReturn    (unsigned n, StatementReturn *r);
+static void gDeclaration(unsigned n, Statement *s);
+static void gStmt      (unsigned n, Statement *s);
+static void gBlock     (unsigned n, Block *b);
+
+/* generación de declaraciones de nivel superior */
+static void gFunction  (unsigned n, Declaration *d);
+static void gExtern    (Declaration *d);
+static void gDecl      (unsigned n, Declaration *d);
+static void gDeclList  (unsigned n, DeclarationList *l);
+
+
 
 /* ──────── UTILIDADES DE SALIDA ──────── */
-static char *pad(unsigned n){ return 
-    indentation(' ',n,4); 
+static char *pad(unsigned n){
+    return indentation(' ',n,4);
 }
+
 
 static void out(unsigned n,const char *fmt,...){
     va_list ap; va_start(ap,fmt);
@@ -69,7 +118,13 @@ static inline void store(unsigned n,SymbolEntry*e){
 
 static void filePro(void){
     out(0,"section .text\nglobal _start\n\n_start:\n");
-    out(1,"call main\nmov rdi, rax\nmov rax, 60\nsyscall\n\n");
+    out(1,"call main\n");
+    out(1,"mov rdi, rax\n");
+    out(1,"mov rax, 60\n");
+    out(1,"syscall\n\n");
+
+
+
 }
 
 
@@ -104,11 +159,13 @@ static void fileEpi(void){
 
     out(0, "section .bss\n");
     gGlobalData();
-    out(0, "; end of file\n");
 }
 
 static void funEpi(unsigned n){
-    out(n,"mov rsp, rbp\npop rbp\nret\n");
+    out(n,"mov rsp, rbp\n");
+    out(n,"pop rbp\n");
+    out(n,"ret\n");
+
 }
 
 
@@ -381,17 +438,19 @@ static void gBlock(unsigned n,Block*b){
 
 ///* ──────── FUNCIÓN ──────── */
 
-static void gFunction(Declaration* d) {
+static void gFunction(unsigned n, Declaration* d) {
     char* callersFunctionName = genFn;
     genFn = *d->identifier;
     fnEndLbl = newLbl();
 
     out(0, "%s:\n", *d->identifier);
-    out(1, "push rbp\nmov rbp, rsp\n");
+    out(n, "push rbp\n");
+    out(n, "mov rbp, rsp\n");
+
 
     int minOffset = 0;
 
-    for (SymbolEntry* e = symTable->head; e; e = e->next) {     //@TODO .modularizar, o agregar un campo en la tabla mejor dicho.
+    for (SymbolEntry* e = symTable->head; e; e = e->next) {
         if (e->functionName && strcmp(e->functionName, genFn) == 0 &&
             e->symbolType == SYMBOL_VARIABLE && e->offset < minOffset) {
             minOffset = e->offset;
@@ -401,13 +460,13 @@ static void gFunction(Declaration* d) {
     int localBytes = -minOffset ;  
     if (localBytes > 0) {
         int aligned = (localBytes + 15) & ~15;
-        out(1, "sub rsp, %d\n", aligned);
+        out(n, "sub rsp, %d\n", aligned);
     }
 
-    gBlock(1, d->declarationSuffix->functionSuffix->block);
+    gBlock(n, d->declarationSuffix->functionSuffix->block);
 
     out(0, "%s:\n", fnEndLbl);
-    funEpi(1);
+    funEpi(n);
     free(fnEndLbl); fnEndLbl = NULL;
     genFn = callersFunctionName;
 }
@@ -418,28 +477,28 @@ static void gExtern(Declaration *d){
 }
 
 /* ──────── DECLARATIONS / FILE ──────── */
-static void gDecl(Declaration*d){
+static void gDecl(unsigned n, Declaration*d){
     if(d->declarationType==DECLARATION_EXTERN) {
         gExtern(d);
         return;
     }
     if(d->declarationSuffix->type==DECLARATION_SUFFIX_FUNCTION &&
-       d->declarationSuffix->functionSuffix->type==SUFFIX_BLOCK) gFunction(d);
+       d->declarationSuffix->functionSuffix->type==SUFFIX_BLOCK) gFunction(n,d);
 }
-static void gDeclList(DeclarationList*l){ for(;l;l=l->next) gDecl(l->declaration); }
+static void gDeclList(unsigned n, DeclarationList*l){ for(;l;l=l->next) gDecl(n,l->declaration); }
 
 /* ──────── API ──────── */
 void initializeGeneratorModule(){ logger=createLogger("Generator"); }
 void shutdownGeneratorModule () { if(logger) destroyLogger(logger); }
 
-void generate(CompilerState *st,SymbolTable *tbl){
-    symTable=tbl; labelCount=0;
+void generate(CompilerState *cs){
+    symTable=cs->st; labelCount=0;
 
     printSymbolTable(symTable);
 
     filePro();
-    Program *root=(Program*)st->abstractSyntaxtTree;
+    Program *root=(Program*)cs->abstractSyntaxtTree;
 
-    if(root && root->type==PROGRAM_DECLARATIONS) gDeclList(root->declarationList);
+    if(root && root->type==PROGRAM_DECLARATIONS) gDeclList(1,root->declarationList);
     fileEpi();
 }

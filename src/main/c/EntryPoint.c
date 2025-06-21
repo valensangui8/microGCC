@@ -43,9 +43,8 @@ const int main(const int count, const char ** arguments) {
             logDebugging(logger, "Semantic analysis succeeded. Generating assembly code...");
 
             // Phase 3: Code Generation
-            SymbolTable* symbolTable = getSymbolTable();
-            if (symbolTable != NULL) {
-                generate(&compilerState, symbolTable);
+            if (compilerState.st != NULL) {
+                generate(&compilerState);
                 logDebugging(logger, "Code generation completed successfully.");
             } else {
                 logError(logger, "Failed to retrieve symbol table.");
