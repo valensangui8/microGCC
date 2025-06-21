@@ -16,6 +16,7 @@ typedef enum {
 } SymbolType;
 
 /* ─────────── Entrada de la TS ─────────── */
+
 typedef struct SymbolEntry {
     char*      name;
     DataType   dataType;
@@ -29,23 +30,6 @@ typedef struct SymbolEntry {
     struct SymbolEntry* next;
 } SymbolEntry;
 
-/*
-typedef struct SymbolEntry {
-    char* name;
-    DataType dataType;
-    SymbolType symbolType;
-    union{
-        int paramCount;          // Para funciones: número de parámetros
-        struct {
-            int offset;              // Offset desde RBP para variables locales
-            int isArray;             // 1 si es array, 0 si no
-            int arraySize;           // Tamaño del array (si aplica)
-        };
-    };
-
-    struct SymbolEntry* next;
-} SymbolEntry;
-*/ //@TODO
 
 
 typedef struct {
@@ -74,5 +58,9 @@ SymbolEntry* lookupSymbol(SymbolTable* t,const char* name,
 /* Offset helpers */
 int  getCurrentOffset(SymbolTable* t);
 void resetOffset     (SymbolTable* t);
+
+
+void printSymbolTable(const SymbolTable * table);
+
 
 #endif

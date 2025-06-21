@@ -308,7 +308,7 @@ static bool _analyzeFunction(Declaration* funcDecl) {
     // Add parameters to symbol table
     if (funcDecl->declarationSuffix->parameters->type == PARAMS_LIST) {
         ParameterList* p = funcDecl->declarationSuffix->parameters->list;
-        int paramOffset = 4; // Skip old BP and return address
+        int paramOffset = 16; // Skip old BP and return address
 
         while (p != NULL) {
             Parameter* param = p->parameter;
@@ -326,7 +326,7 @@ static bool _analyzeFunction(Declaration* funcDecl) {
             }
             //addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset); // todo estaba esto antes. (esta raro porque le pongo arraySize = -1, podria ser un unknown o cambiar la gramatica. )
             //parece estar bien solo que en la generacion de codigo hace un mov en vez de un lea
-            paramOffset += 2; // All parameters are word-sized in 8086
+            paramOffset += 8; // All parameters are word-sized in 8086
             p = p->next;
         }
     }

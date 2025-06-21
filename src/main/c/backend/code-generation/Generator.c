@@ -19,53 +19,40 @@ static void out(unsigned n,const char *fmt,...){
 }
 static char *newLbl(void){ char*l=calloc(20,1); sprintf(l,".L%d",lblCnt++); return l; }
 
-/* ──────── TAMAÑOS Y OFFSETS ──────── */
-static inline int sizeWords(SymbolEntry*e){
-    int base=(e->dataType==TYPE_INT)?2:1;               /* int=2 palabras */
-    return e->isArray ? base*e->arraySize : base;
-}
-static inline int localDisp(SymbolEntry*e){
-    int szW=sizeWords(e);
-    int after= totalW - (e->offset + szW);
-    return -(after*4 + szW*4);                          /* bytes negativos */
-}
-static inline int effOff(SymbolEntry*e){
-    if(e->symbolType==SYMBOL_PARAMETER){
-        int idx=(e->offset-4)/2;
-        return 16 + idx*8;
-    }
-    return localDisp(e);
-}
-static inline void load(unsigned n,const char*reg,SymbolEntry*e){
-    int o=effOff(e);
 
-    char * asmInstruction = e->isArray ? "lea":"mov";
+
+static const char * getInstructionSize(SymbolEntry * e){
+    const char * size = e->dataType == TYPE_CHAR ? "byte":"qword";
+    return size;
+}
+
+
+static inline void load(unsigned n,const char*reg,SymbolEntry*e){
+    //int o=effOff(e);
+
+    int o = e->offset;
+    char * asmInstruction = e->isArray ? "lea":(e->dataType == TYPE_CHAR ? "movzx":"mov");
+    const char * size = getInstructionSize(e);
 
     if(e->functionName == NULL){
-        out(n,"%s %s,[%s]\n",asmInstruction , reg,e->name);
+        out(n,"%s %s,%s[%s]\n",asmInstruction , reg, size,e->name);
         return;
     }
-
-//    if(/*e->symbolType == SYMBOL_PARAMETER &&*/ e->isArray){
-//        out(n,"lea %s,[rbp-%d]  ; %s\n",reg,-o,e->name);
-//        return;  //@TODO , esto, me rompe algo???
-//    }
-//
-//    out(n,o>=0? "mov %s,[rbp+%d]  ; %s\n":"mov %s,[rbp-%d]  ; %s\n",
-//        reg,o>=0?o:-o,e->name);
 
     out(n,o>=0? "%s %s,[rbp+%d]  ; %s\n":"%s %s,[rbp-%d]  ; %s\n",
         asmInstruction,reg,o>=0?o:-o,e->name);  //@todo rompi algo???
 }
 static inline void store(unsigned n,SymbolEntry*e){
-    int o=effOff(e);
+    int o = e->offset;
+    const char * size = getInstructionSize(e);
+
 
     if(e->functionName == NULL){
-        out(n,"mov [%s], rax\n", e->name);
+        out(n,"mov %s [%s], rax\n",size, e->name);
         return;
     }
 
-    out(n,o>=0? "mov [rbp+%d],rax  ; %s\n":"mov [rbp-%d],rax  ; %s\n",
+    out(n,o>=0? "mov %s [rbp+%d],rax  ; %s\n":"mov %s [rbp-%d],rax  ; %s\n",size,
         o>=0?o:-o,e->name);
 }
 
@@ -93,7 +80,7 @@ static void gGlobalData(){
 
                     break;
                     case TYPE_INT:
-                    out(1, "%s resq %d\n", varName, entry->isArray ? entry->arraySize*8 : 1 ); // 1 byte
+                    out(1, "%s resq %d\n", varName, entry->isArray ? entry->arraySize : 1 ); // 1 byte
                     break;
                     default:
                     out(1, "; Warning: tipo no reconocido para %s\n", varName);
@@ -146,30 +133,51 @@ static void gCompare(unsigned n,Expression*e,const char*jmp){
 }
 
 /* --- acceso a arrays --- */
-static void gArrayBase(unsigned n,SymbolEntry*e){
-    int off=effOff(e);
-    if(e->symbolType==SYMBOL_PARAMETER)
-        out(n, off>=0? "mov rdi,[rbp+%d]\n":"mov rdi,[rbp-%d]\n",off>=0?off:-off);
+static void gArrayBase(unsigned n, SymbolEntry *e) {
+    if (e->functionName == NULL) {
+        // Es global: accedé directamente al label
+        out(n, "lea rdi, [%s]\n", e->name);
+        return;
+    }
+
+    int off = e->offset;
+    if (e->symbolType == SYMBOL_PARAMETER)
+        out(n, off >= 0 ? "mov rdi, [rbp+%d]\n" : "mov rdi, [rbp-%d]\n", off >= 0 ? off : -off);
     else
-        out(n, off>=0? "lea rdi,[rbp+%d]\n":"lea rdi,[rbp-%d]\n",off>=0?off:-off);
+        out(n, off >= 0 ? "lea rdi, [rbp+%d]\n" : "lea rdi, [rbp-%d]\n", off >= 0 ? off : -off);
 }
+
 static void gArrayAcc(unsigned n,const char*arr,Expression*idx){
     gExpr(n,idx); out(n,"mov rbx, rax\n");
     SymbolEntry*e=lookupSymbol(symTable,arr, genFn);
     if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
     gArrayBase(n,e);
-    out(n,"add rdi, rbx\nmov rax,[rdi]\n");
+    out(n,"add rdi, rbx\n");
+    if (e->dataType == TYPE_INT) {
+        out(n, "mov rax, [rdi]\n");
+    } else if (e->dataType == TYPE_CHAR) {
+        out(n, "movzx rax, byte [rdi]\n");
+    }
 }
+
+
 static void gLValue(unsigned n,Expression*lval){
     if(lval->type==EXPRESSION_IDENTIFIER){
         store(n,lookupSymbol(symTable,*lval->identifier, genFn));
     }else{
         out(n,"push rax\n");
-        gExpr(n,lval->indexExpression); out(n,"mov rbx, rax\n");
+        gExpr(n,lval->indexExpression);
+        out(n,"mov rbx, rax\n");
         SymbolEntry*e=lookupSymbol(symTable,*lval->identifierArray, genFn);
         if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
         gArrayBase(n,e);
-        out(n,"add rdi, rbx\npop rax\nmov [rdi], rax\n");
+        out(n,"add rdi, rbx\npop rax\n");
+
+        if (e->dataType == TYPE_INT) {
+            out(n, "mov [rdi], rax\n");
+        } else if (e->dataType == TYPE_CHAR) {
+            out(n, "mov byte [rdi], al\n");
+        }
     }
 }
 
@@ -276,27 +284,59 @@ static void gBlock(unsigned n,Block*b){
     }
 }
 
-/* ──────── FUNCIÓN ──────── */
-static void gFunction(Declaration*d){
-    char * callersFunctionName = genFn;
+///* ──────── FUNCIÓN ──────── */
+//static void gFunction(Declaration*d){
+//    char * callersFunctionName = genFn;
+//    genFn = *d->identifier;
+//    totalBytes = getCurrentOffset(symTable);
+//    fnEndLbl = newLbl();
+//
+//    out(0,"%s:\n",*d->identifier);
+//    out(1,"push rbp\nmov rbp, rsp\n");
+//
+//    int localBytes = (totalW - 8)*4;
+//    if(localBytes){
+//        int aligned=(localBytes+15)&~15;
+//        out(1,"sub rsp,%d\n",aligned);
+//    }
+//    gBlock(1,d->declarationSuffix->functionSuffix->block);
+//
+//    out(0,"%s:\n",fnEndLbl); epi(1);
+//    free(fnEndLbl); fnEndLbl=NULL;
+//    genFn = callersFunctionName;
+//}
+
+static void gFunction(Declaration* d) {
+    char* callersFunctionName = genFn;
     genFn = *d->identifier;
-    totalW = getCurrentOffset(symTable);
     fnEndLbl = newLbl();
 
-    out(0,"%s:\n",*d->identifier);
-    out(1,"push rbp\nmov rbp, rsp\n");
+    out(0, "%s:\n", *d->identifier);
+    out(1, "push rbp\nmov rbp, rsp\n");
 
-    int localBytes = (totalW - 8)*4;
-    if(localBytes){
-        int aligned=(localBytes+15)&~15;
-        out(1,"sub rsp,%d\n",aligned);
+    int minOffset = 0;
+
+    for (SymbolEntry* e = symTable->head; e; e = e->next) {     //@TODO .modularizar, o agregar un campo en la tabla mejor dicho.
+        if (e->functionName && strcmp(e->functionName, genFn) == 0 &&
+            e->symbolType == SYMBOL_VARIABLE && e->offset < minOffset) {
+            minOffset = e->offset;
+        }
     }
-    gBlock(1,d->declarationSuffix->functionSuffix->block);
 
-    out(0,"%s:\n",fnEndLbl); epi(1);
-    free(fnEndLbl); fnEndLbl=NULL;
+    int localBytes = -minOffset ;  //todo es -8??????????????????????????????????????????????????????????????????????
+    if (localBytes > 0) {
+        int aligned = (localBytes + 15) & ~15;
+        out(1, "sub rsp, %d\n", aligned);
+    }
+
+    gBlock(1, d->declarationSuffix->functionSuffix->block);
+
+    out(0, "%s:\n", fnEndLbl);
+    epi(1);
+    free(fnEndLbl); fnEndLbl = NULL;
     genFn = callersFunctionName;
 }
+
 
 static void gExtern(Declaration *d){
     out(0,"extern %s\n",*d->identifier);
@@ -319,6 +359,9 @@ void shutdownGeneratorModule () { if(logger) destroyLogger(logger); }
 
 void generate(CompilerState *st,SymbolTable *tbl){
     symTable=tbl; lblCnt=0;
+
+    printSymbolTable(symTable);
+
     filePro();
     Program *root=(Program*)st->abstractSyntaxtTree;
 
