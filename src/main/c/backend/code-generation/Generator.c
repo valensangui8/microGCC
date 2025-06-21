@@ -51,7 +51,7 @@ static inline void load(unsigned n,const char*reg,SymbolEntry*e){
     }
 
     out(n,o>=0? "%s %s,[rbp+%d]  ; %s\n":"%s %s,[rbp-%d]  ; %s\n",
-        asmInstruction,reg,o>=0?o:-o,e->name);  //@todo rompi algo???
+        asmInstruction,reg,o>=0?o:-o,e->name);
 }
 
 static inline void store(unsigned n,SymbolEntry*e){

@@ -58,7 +58,7 @@ bool analyzeSemantics(CompilerState* compilerState) {
     if (success) {
         SymbolEntry* current = _context->symbolTable->head;
         while (current != NULL) {
-            if (current->symbolType == SYMBOL_FUNCTION && current->offset == -1) {
+            if (current->symbolType == SYMBOL_FUNCTION && current->functionStatus == DECLARED_BUT_NOT_DEFINED_FUN) {
                 // Function was declared but not defined and is not extern
                 _reportError(SEMANTIC_ERROR_UNDEFINED_FUNCTION, current->name);
                 _context->hasErrors = true;
@@ -172,20 +172,14 @@ static bool _analyzeDeclarationSuffixFunction(Declaration * decl, SymbolEntry * 
 
         // Mark function as defined if this is a definition
         if (isDefinition) {
-            existing->offset = 0;  // Mark as defined
+            existing->functionStatus = DEFINED_FUN;  // Mark as defined
         }
     } else {
         // First time seeing this function - add to symbol table
-        addFunction(_context->symbolTable, *decl->identifier, decl->dataType, paramCount);
-        SymbolEntry* funcEntry = lookupSymbol(_context->symbolTable, *decl->identifier, CUR_FN);
+        FunctionStatus fs = isDefinition ? DEFINED_FUN: (isExtern ? EXTERN_FUN: DECLARED_BUT_NOT_DEFINED_FUN);
 
-        if (isDefinition) {
-            funcEntry->offset = 0;  // Mark as defined
-        } else if (isExtern) {
-            funcEntry->offset = -2;  // Mark as extern
-        } else {
-            funcEntry->offset = -1;  // Mark as declared but not defined
-        }
+        addFunction(_context->symbolTable, *decl->identifier, decl->dataType, paramCount, fs);
+
     }
 
     // Analyze function body if present
@@ -240,9 +234,7 @@ static bool _analyzeFunction(Declaration* funcDecl) {
             }else{
                 addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 0 ,0, CUR_FN);
             }
-            //addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset); // todo estaba esto antes. (esta raro porque le pongo arraySize = -1, podria ser un unknown o cambiar la gramatica. )
-            //parece estar bien solo que en la generacion de codigo hace un mov en vez de un lea
-            paramOffset += 8; // All parameters are word-sized in 8086
+            paramOffset += 8; // Todos los parametros van a ser de 8 bytes
             p = p->next;
         }
     }
@@ -389,10 +381,7 @@ static bool _analyzeStatement(Statement* stmt) {
 
 static boolean canAssignToLValue(Expression * leftExpression){
     if (leftExpression->type == EXPRESSION_IDENTIFIER) {
-        SymbolEntry *lhsSym =
-                lookupSymbol(_context->symbolTable,
-                             *leftExpression->identifier,
-                             CUR_FN);
+        SymbolEntry *lhsSym = lookupSymbol(_context->symbolTable,*leftExpression->identifier,CUR_FN);
         if (lhsSym != NULL && lhsSym->isArray) {
             return false;
         }
@@ -403,7 +392,6 @@ static boolean canAssignToLValue(Expression * leftExpression){
 static DataType _analyzeExpression(Expression* expr) {
     switch (expr->type) {
         case EXPRESSION_ASSIGNMENT: {
-
             if(!canAssignToLValue(expr->leftExpression)){
                 _reportError(SEMANTIC_ERROR_TYPE_MISMATCH, "assignment of array");
                 return -1;
@@ -421,30 +409,14 @@ static DataType _analyzeExpression(Expression* expr) {
 
             return leftType;
         }
-
         case EXPRESSION_OR:
-        case EXPRESSION_AND:/* {
-            DataType leftType = _analyzeExpression(expr->leftExpression);
-            DataType rightType = _analyzeExpression(expr->rightExpression);
-
-            if (leftType == -1 || rightType == -1) return -1;
-
-            return TYPE_INT; // Boolean operations return int
-        }*/
+        case EXPRESSION_AND:
         case EXPRESSION_EQUAL:
         case EXPRESSION_NOT_EQUAL:
         case EXPRESSION_LESS:
         case EXPRESSION_GREATER:
         case EXPRESSION_LESS_EQUAL:
-        case EXPRESSION_GREATER_EQUAL: /*{
-            DataType leftType = _analyzeExpression(expr->leftExpression);
-            DataType rightType = _analyzeExpression(expr->rightExpression);
-
-            if (leftType == -1 || rightType == -1) return -1;
-
-            return TYPE_INT; // Comparison operations return int
-        }*/
-
+        case EXPRESSION_GREATER_EQUAL:
         case EXPRESSION_ADDITION:
         case EXPRESSION_SUBTRACTION:
         case EXPRESSION_MULTIPLICATION:
@@ -452,17 +424,12 @@ static DataType _analyzeExpression(Expression* expr) {
         case EXPRESSION_MODULO: {
             DataType leftType = _analyzeExpression(expr->leftExpression);
             DataType rightType = _analyzeExpression(expr->rightExpression);
-
             if (leftType == -1 || rightType == -1) return -1;
-
-            // Both operands should be numeric
             return TYPE_INT;
         }
-
         case EXPRESSION_NOT: {
             DataType type = _analyzeExpression(expr->singleExpression);
             if (type == -1) return -1;
-
             return TYPE_INT; // NOT operation returns int
         }
 
@@ -472,7 +439,6 @@ static DataType _analyzeExpression(Expression* expr) {
                 _reportError(SEMANTIC_ERROR_UNDECLARED_VARIABLE, *expr->identifier);
                 return -1;
             }
-
             return symbol->dataType;
         }
 
@@ -583,7 +549,6 @@ static void _reportError(SemanticError error, const char* details) {
 }
 
 static bool _checkTypeCompatibility(DataType expected, DataType actual) {
-    // For now, we're strict about types
-    // In the future, we might allow char to int promotion
+    //Somos estrictos con los tipos de datos.
     return expected == actual;
 }

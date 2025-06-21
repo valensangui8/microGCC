@@ -61,37 +61,15 @@ void addVariable(SymbolTable* t, const char* name, DataType ty,
 }
 
 
-/*
-void addVariable(SymbolTable* t,const char* name,DataType ty,
-                 int isArr,int arrSz,const char* fnName){
-    logDebugging(_logger,"Add var %s (fn=%s)",name,fnName?fnName:"GLOBAL");
-    SymbolEntry* e = newEntry(name,ty,fnName);
-    e->symbolType = SYMBOL_VARIABLE;
-    e->isArray    = isArr;
-    e->arraySize  = arrSz;
-    int bytes = (ty==TYPE_INT) ? 8:1;                          //todo podria cambiar. por ahora siempre 8 para que este alienado
-    if(isArr){
-       bytes = arrSz * bytes;
-    }
-    if(fnName != NULL){
-        e->offset = t->currentOffset;
-        t->currentOffset -= bytes;
-    }
-    while(t->currentOffset % 8 != 0){
-        t->currentOffset++;
-    }
-
-
-    e->next = t->head; t->head = e;
-}*/
-
-void addFunction(SymbolTable* t,const char* name,DataType ret,int nPar){
+void addFunction(SymbolTable* t,const char* name,DataType ret,int nPar, FunctionStatus functionStatus){
     logDebugging(_logger,"Add func %s",name);
     SymbolEntry* e = newEntry(name,ret,NULL);
     e->symbolType = SYMBOL_FUNCTION;
     e->paramCount = nPar;
+    e->functionStatus = functionStatus;
     e->next = t->head; t->head = e;
 }
+
 
 void addParameter(SymbolTable* t,const char* name,DataType ty,int off,
                   int isArr,int arrSz,const char* fnName){
@@ -152,7 +130,6 @@ static const char * symbolTypeStr(SymbolType s) {
         default:               return "??";
     }
 }
-
 /* ── Impresión linda de la TS ─────────────────────────────────────── */
 void printSymbolTable(const SymbolTable * table)
 {
@@ -161,13 +138,14 @@ void printSymbolTable(const SymbolTable * table)
         return;
     }
 
-    puts("\n;┌─────────────────────────────────────────── Symbol Table ────────────────────────────────────────────┐");
-    puts(";│ Name                │ Type │ Kind  │ Scope/function │ Offset/params │ Array │ Size │");
-    puts(";├─────────────────────┼──────┼───────┼────────────────┼───────────────┼───────┼──────┤");
+    puts("\n;┌───────────────────────────────────────────── Symbol Table ───────────────────────────────────┐");
+    puts(";│ Name                │ Type │ Kind  │ Scope/function │ Offset/params │ Array │ Size │ Status  │");
+    puts(";├─────────────────────┼──────┼───────┼────────────────┼───────────────┼───────┼──────┼─────────┤");
 
     for (const SymbolEntry * e = table->head; e; e = e->next) {
-        const char * scope = (e->functionName == NULL) ? "<global>" : e->functionName;
-        const char * arr   = e->isArray ? "yes" : "no";
+
+        const char *scope  = (e->functionName == NULL) ? "<global>" : e->functionName;
+        const char *arr    = e->isArray ? "yes" : "no";
         int  size          = (e->isArray && e->arraySize != UNKNOWN_ARRAY_SIZE) ? e->arraySize
                                                                                 : (e->isArray ? -1 : 0);
 
@@ -175,15 +153,27 @@ void printSymbolTable(const SymbolTable * table)
         int offOrCnt = (e->symbolType == SYMBOL_FUNCTION) ? e->paramCount
                                                           : e->offset;
 
-        printf(";│ %-19s │ %-4s │ %-5s │ %-14s │ %13d │ %-5s │ %-4d │\n",
+        /* Determinar el texto de la columna Status */
+        const char *statusStr = "-";                  // valor por defecto
+        if (e->symbolType == SYMBOL_FUNCTION) {
+            switch (e->functionStatus) {                   // nuevo campo en SymbolEntry
+                case EXTERN_FUN:                       statusStr = "EXTERN";      break;
+                case DEFINED_FUN:                      statusStr = "DEFINED";     break;
+                case DECLARED_BUT_NOT_DEFINED_FUN:     statusStr = "DECL-ND";     break;
+                default:                               statusStr = "?";           break;
+            }
+        }
+
+        printf(";│ %-19s │ %-4s │ %-5s │ %-14s │ %13d │ %-5s │ %-4d │ %-7s │\n",
                e->name,
                dataTypeStr(e->dataType),
                symbolTypeStr(e->symbolType),
                scope,
                offOrCnt,
                arr,
-               size);
+               size,
+               statusStr);
     }
 
-    puts(";└───────────────────────────────────────────────────────────────────────────────────────────────────────┘");
+    puts(";└──────────────────────────────────────────────────────────────────────────────────────────────┘");
 }

@@ -8,12 +8,19 @@
 
 #define UNKNOWN_ARRAY_SIZE -1
 
+
 /** Tipo de símbolo */
 typedef enum {
     SYMBOL_VARIABLE,
     SYMBOL_FUNCTION,
     SYMBOL_PARAMETER
 } SymbolType;
+
+typedef enum{
+    EXTERN_FUN,
+    DEFINED_FUN,
+    DECLARED_BUT_NOT_DEFINED_FUN
+}FunctionStatus;
 
 /* ─────────── Entrada de la TS ─────────── */
 
@@ -23,6 +30,7 @@ typedef struct SymbolEntry {
     SymbolType symbolType;
     char*      functionName;        //NULL => global; otro => nombre de la función
     int offset;                     /* variables / parámetros               */
+    FunctionStatus functionStatus;
     int paramCount;                 /* funciones                            */
     int isArray;
     int arraySize;                  /* UNKNOWN_ARRAY_SIZE si no se conoce   */
@@ -48,7 +56,7 @@ void         destroySymbolTable(SymbolTable* table);
 /* Inserciones */
 void addVariable (SymbolTable* t,const char* name,DataType ty,
                   int isArr,int arrSz,const char* fnName);
-void addFunction (SymbolTable* t,const char* name,DataType ret,int nPar);
+void addFunction (SymbolTable* t,const char* name,DataType ret,int nPar, FunctionStatus functionStatus);
 void addParameter(SymbolTable* t,const char* name,DataType ty,int off,
                   int isArr,int arrSz,const char* fnName);
 
