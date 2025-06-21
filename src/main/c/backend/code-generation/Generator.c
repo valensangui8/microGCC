@@ -14,7 +14,7 @@ static void gExpr(unsigned,Expression*);
 static void gStmt(unsigned,Statement*);
 static void gBlock(unsigned,Block*);
 static void gDeclList(DeclarationList*);
-static void gArgsRev(unsigned,ListArguments*,int);
+static void gFunctionCallArgs(unsigned,ListArguments*,int);
 
 /* ──────── UTILIDADES DE SALIDA ──────── */
 static char *pad(unsigned n){ return 
@@ -91,7 +91,7 @@ static void gGlobalData(){
                     break;
                     
                     default:
-                    logError(logger, 1, "; Error: tipo no reconocido para %s\n", varName);
+                    logError(logger, "; Error: tipo no reconocido para %s\n", varName);
                     break;
                 }
             }
@@ -122,11 +122,8 @@ static void gArrayBase(unsigned n, SymbolEntry *e) {
         return;
     }
 
-    int off = e->offset;
-    if (e->symbolType == SYMBOL_PARAMETER)
-        out(n, off >= 0 ? "mov rdi, [rbp+%d]\n" : "mov rdi, [rbp-%d]\n", off >= 0 ? off : -off);
-    else
-        out(n, off >= 0 ? "lea rdi, [rbp+%d]\n" : "lea rdi, [rbp-%d]\n", off >= 0 ? off : -off);
+    const char *operation = (e->symbolType == SYMBOL_PARAMETER) ? "mov" : "lea";
+    out(n, "%s rdi, [rbp%+d]\n", operation, e->offset);                               // El %+d hace que le ponga signo
 }
 
 static void gArrayAcc(unsigned n,const char*arr,Expression*idx){
@@ -163,14 +160,16 @@ static void gLValue(unsigned n,Expression*lval){
     }
 }
 
-/* --- llamadas --- */
-static void gArgsRev(unsigned n,ListArguments*a,int k){
-    if(k>1) gArgsRev(n,a->next,k-1);
-    gExpr(n,a->expression); out(n,"push rax\n");
+/* --- llamadas a funciones--- */
+static void gFunctionCallArgs(unsigned n,ListArguments*a , int k){
+    if(k>1) gFunctionCallArgs(n,a->next,k-1);      // Llamado recursivo para pushear en orden inverso
+    gExpr(n,a->expression);                           // El resultado de la expresion esta en RAX
+    out(n,"push rax\n");
 }
-static void gCall(unsigned n,const char*name,ListArguments*a){
-    int c=0; for(ListArguments*t=a;t;t=t->next) ++c;
-    if(c) gArgsRev(n,a,c);
+static void gCall(unsigned n,const char*name,ListArguments * argList){
+    int c=0; 
+    for(ListArguments * t = argList ; t ; t=t->next) ++c;
+    if(c) gFunctionCallArgs(n,argList,c);
     out(n,"call %s\n",name);
     if(c) out(n,"add rsp,%d\n",c*8);
 }
@@ -178,12 +177,12 @@ static void gCall(unsigned n,const char*name,ListArguments*a){
 
 /* Los resultados de las expresiones se ponen en rax*/
 
-static void gConst(unsigned n,Constant*c){
+static void gConstant(unsigned n,Constant*c){
     out(n,"mov rax,%d\n",*c->integer);
 }
 
-static void gIdent(unsigned n,const char*s){
-    load(n,"rax",lookupSymbol(symTable,s, genFn));
+static void gIdentifier(unsigned n,const char*name){
+    load(n,"rax",lookupSymbol(symTable,name, genFn));  // cargo el identificador en RAX 
 }
 
 static void gBinary(unsigned n,Expression*e,const char*op){
@@ -200,11 +199,12 @@ static void gCompare(unsigned n,Expression*e,const char*jmp){
     out(n,"push rax\n");
     gExpr(n,e->rightExpression);
     out(n,"pop rbx\n");
-    out(n,"cmp rbx, rax\n%s %s\n",jmp,T);
-    out(n,"mov rax,0\njmp %s\n",End);
-    out(0,"%s:\n",T);
-    out(n,"mov rax,1\n");
-    out(0,"%s:\n",End);
+    out(n,"cmp rbx, rax\n");                // En RBX esta leftExpression, en rax rightExpression
+    out(n, "%s %s\n",jmp,T);
+    out(n,"mov rax,0\njmp %s\n",End);       // No se cumplio la condicion de salto. RAX <- 0.
+    out(0,"%s:\n",T);           
+    out(n,"mov rax,1\n");                   // Se cumplio la condicion de salto. RAX <- 1.
+    out(0,"%s:\n",End);                   
     free(T);
     free(End);
 }
@@ -212,8 +212,8 @@ static void gCompare(unsigned n,Expression*e,const char*jmp){
 /* --- dispatcher --- */
 static void gExpr(unsigned n,Expression*e){
     switch(e->type){
-        case EXPRESSION_CONSTANT:       gConst(n,e->constant); break;
-        case EXPRESSION_IDENTIFIER:     gIdent(n,*e->identifier); break;
+        case EXPRESSION_CONSTANT:       gConstant(n,e->constant); break;
+        case EXPRESSION_IDENTIFIER:     gIdentifier(n,*e->identifier); break;
         case EXPRESSION_ARRAY_ACCESS:   gArrayAcc(n,*e->identifierArray,e->indexExpression); break;
         case EXPRESSION_ASSIGNMENT:
             gExpr(n,e->rightExpression); gLValue(n,e->leftExpression); break;
