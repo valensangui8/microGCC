@@ -140,24 +140,29 @@ static void gArrayAcc(unsigned n,const char*arr,Expression*idx){
 }
 
 
+
 static void gLValue(unsigned n,Expression*lval){
     if(lval->type==EXPRESSION_IDENTIFIER){
         store(n,lookupSymbol(symTable,*lval->identifier, genFn));
-    }else{
-        out(n,"push rax\n");
-        gExpr(n,lval->indexExpression);
-        out(n,"mov rbx, rax\n");
-        SymbolEntry*e=lookupSymbol(symTable,*lval->identifierArray, genFn);
-        if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
-        gArrayBase(n,e);
-        out(n,"add rdi, rbx\npop rax\n");
-
-        if (e->dataType == TYPE_INT) {
-            out(n, "mov [rdi], rax\n");
-        } else if (e->dataType == TYPE_CHAR) {
-            out(n, "mov byte [rdi], al\n");
-        }
+        return;
     }
+
+    // Manejamos ARRAYS: 
+
+    out(n,"push rax\n");
+    gExpr(n,lval->indexExpression);
+    out(n,"mov rbx, rax\n");
+    SymbolEntry*e=lookupSymbol(symTable,*lval->identifierArray, genFn);
+    if(e->dataType==TYPE_INT) out(n,"shl rbx,3\n");
+    gArrayBase(n,e);
+    out(n,"add rdi, rbx\npop rax\n");
+
+    if (e->dataType == TYPE_INT) {
+        out(n, "mov [rdi], rax\n");
+    } else if (e->dataType == TYPE_CHAR) {
+        out(n, "mov byte [rdi], al\n");
+    }
+
 }
 
 /* --- llamadas a funciones--- */
@@ -209,24 +214,55 @@ static void gCompare(unsigned n,Expression*e,const char*jmp){
     free(End);
 }
 
+// Si la comparación fue verdadera (la expresión fue igual a cero en C),
+// se asigna 1 (TRUE) a RAX como resultado booleano. De lo contrario se le asigna 0.
+static void gNotExpression(unsigned n, Expression * e){
+    gExpr(n,e->singleExpression);
+    out(n,"cmp rax,0\n");    // Compara rax con 0 (esto setea los flags)
+    out(n,"mov rax,0\n");    // No setea flags.
+    out(n,"sete al\n");     //  al = (Zero Flag == 1) ? 1 : 0
+}
+
+static void gDivModExpression(unsigned n, Expression * e){
+    gExpr(n,e->leftExpression);
+    out(n,"push rax\n");
+    gExpr(n,e->rightExpression);
+    out(n,"mov rbx, rax\n");        // RBX --> rightExpression
+    out(n,"pop rax\n");             // RAX --> leftExpression
+    out(n,"cqo\n");                 //  Deja a RDX en 0 o -1 dependiendo del signo de RAX (prepara la extension RDX:RAX para idiv)
+    out(n,"idiv rbx\n");            //  RDX:RAX / RBX --> Rta: RDX: resto. RAX: cociente
+
+    if(e->type==EXPRESSION_MODULO) out(n,"mov rax, rdx\n");     //Dejo el resto en RAX.
+}
+
+static void gMultExpression(unsigned n, Expression * e){
+    gExpr(n,e->leftExpression);
+    out(n,"push rax\n");
+    gExpr(n,e->rightExpression);
+    out(n,"pop rbx\n");
+    out(n,"imul rax, rbx\n");
+}
+
+static void gAssignmentExpression(unsigned n, Expression * e){
+    gExpr(n,e->rightExpression);
+    gLValue(n,e->leftExpression);
+}
+
+
+
+
 /* --- dispatcher --- */
 static void gExpr(unsigned n,Expression*e){
     switch(e->type){
         case EXPRESSION_CONSTANT:       gConstant(n,e->constant); break;
         case EXPRESSION_IDENTIFIER:     gIdentifier(n,*e->identifier); break;
         case EXPRESSION_ARRAY_ACCESS:   gArrayAcc(n,*e->identifierArray,e->indexExpression); break;
-        case EXPRESSION_ASSIGNMENT:
-            gExpr(n,e->rightExpression); gLValue(n,e->leftExpression); break;
+        case EXPRESSION_ASSIGNMENT:     gAssignmentExpression(n,e); break;
         case EXPRESSION_ADDITION:       gBinary(n,e,"add"); break;
         case EXPRESSION_SUBTRACTION:    gBinary(n,e,"sub"); break;
-        case EXPRESSION_MULTIPLICATION:{
-            gExpr(n,e->leftExpression); out(n,"push rax\n");
-            gExpr(n,e->rightExpression);out(n,"pop rbx\nimul rax, rbx\n"); break; }
+        case EXPRESSION_MULTIPLICATION: gMultExpression(n,e); break;
         case EXPRESSION_DIVISION:
-        case EXPRESSION_MODULO:{
-            gExpr(n,e->leftExpression); out(n,"push rax\n");
-            gExpr(n,e->rightExpression);out(n,"mov rbx, rax\npop rax\ncqo\nidiv rbx\n");
-            if(e->type==EXPRESSION_MODULO) out(n,"mov rax, rdx\n"); break; }
+        case EXPRESSION_MODULO:         {gDivModExpression(n, e);break;}
         case EXPRESSION_OR:             gBinary(n,e,"or");  break;
         case EXPRESSION_AND:            gBinary(n,e,"and"); break;
         case EXPRESSION_EQUAL:          gCompare(n,e,"je");  break;
@@ -235,8 +271,7 @@ static void gExpr(unsigned n,Expression*e){
         case EXPRESSION_GREATER:        gCompare(n,e,"jg");  break;
         case EXPRESSION_LESS_EQUAL:     gCompare(n,e,"jle"); break;
         case EXPRESSION_GREATER_EQUAL:  gCompare(n,e,"jge"); break;
-        case EXPRESSION_NOT:
-            gExpr(n,e->singleExpression); out(n,"cmp rax,0\nmov rax,0\nsete al\n"); break;
+        case EXPRESSION_NOT:            gNotExpression(n, e); break;
         case EXPRESSION_FUNCTION_CALL:  gCall(n,*e->identifierFunc,e->arguments); break;
         case EXPRESSION_PARENTHESIS:    gExpr(n,e->singleExpression); break;
     }

@@ -1,18 +1,14 @@
 
 
 
-int fun(int arr[]){
+int fun(){
+    return 12/3+3;
 
-    return arr[3];
 }
 
+
 int main(){
-    int i;
-    int arr[10];
-    for(i = 0; i<10 ; i = i + 1){
-        arr[i] = 10-i;
-    }
+    int a = fun() + 3;
 
-    return fun(arr);
-
+    return a;
 }
