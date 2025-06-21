@@ -146,14 +146,14 @@ static void gArrayAcc(unsigned n,const char*arr,Expression*idx){
 static void gFunctionCallArgs(unsigned n,ListArguments*a , int k){
     if(k>1) gFunctionCallArgs(n,a->next,k-1);      // Llamado recursivo para pushear en orden inverso
     gExpr(n,a->expression);                           // El resultado de la expresion esta en RAX
-    out(n,"push rax\n");
+    out(n,"push rax\n");                            //  En Rax esta el parametro computado
 }
 static void gCall(unsigned n,const char*name,ListArguments * argList){
-    int c=0; 
-    for(ListArguments * t = argList ; t ; t=t->next) ++c;
-    if(c) gFunctionCallArgs(n,argList,c);
-    out(n,"call %s\n",name);
-    if(c) out(n,"add rsp,%d\n",c*8);
+    int c=0;
+    for(ListArguments * t = argList ; t ; t=t->next) ++c;  // Cuenta argumentos
+    if(c) gFunctionCallArgs(n,argList,c);             // Apila los argumentos
+    out(n,"call %s\n",name);                           // llamado de funcion --> Resultado en RAX
+    if(c) out(n,"add rsp,%d\n",c*8);                   // limpia la pila
 }
 
 
@@ -259,8 +259,6 @@ static void gAssignmentExpression(unsigned n, Expression * e){
 }
 
 
-
-
 /* --- dispatcher --- */
 static void gExpr(unsigned n,Expression*e){
     switch(e->type){
@@ -288,16 +286,29 @@ static void gExpr(unsigned n,Expression*e){
 }
 
 /* ──────── CONTROL FLUJO / BLOQUES ──────── */
-static void gIf(unsigned n,StatementIf*s){
-    char *Else=newLbl(),*End=newLbl();
-    gExpr(n,s->condition); out(n,"cmp rax,0\nje %s\n",s->hasElse?Else:End);
-    gBlock(n,s->thenBlock);
-    if(s->hasElse){
-        out(n,"jmp %s\n",End);
-        out(0,"%s:\n",Else); gBlock(n,s->elseBlock);
+
+
+static void gIf(unsigned n, StatementIf *s){
+    char *lblElse = newLbl();                                      // etiqueta para la rama else
+    char *lblEnd  = newLbl();                                      // etiqueta de salida del if completo
+    gExpr(n, s->condition);                                     // evalúa la condición -> Resulatdo en RAX
+    out(n, "cmp rax, 0\n");                                   // ¿condición == 0?
+    out(n, "je %s\n", s->hasElse ? lblElse : lblEnd);         // si es 0 (falso) salta a else o end
+    gBlock(n, s->thenBlock);                                    // ejecuta el bloque dentro del IF
+
+    if (s->hasElse) {
+        out(n, "jmp %s\n", lblEnd);                            // salta al final para no caer al else
+        out(0, "%s:\n", lblElse);                           // etiqueta ELSE
+        gBlock(n, s->elseBlock);                                // ejecuta el bloque ELSE
     }
-    out(0,"%s:\n",End); free(Else); free(End);
+
+    out(0, "%s:\n", lblEnd);                                // etiqueta END
+    free(lblElse);
+    free(lblEnd);
 }
+
+
+
 static void gWhile(unsigned n,StatementWhile*w){
     char*Top=newLbl(),*End=newLbl();
     out(0,"%s:\n",Top);
