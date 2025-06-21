@@ -74,7 +74,6 @@ static void filePro(void){
 
 
 static void gGlobalData(){
-
     SymbolEntry * entry = symTable->head;
     while (entry != NULL) {
             // Solo procesamos símbolos que no pertenecen a una función (i.e., variables globales)
@@ -307,39 +306,63 @@ static void gIf(unsigned n, StatementIf *s){
     free(lblEnd);
 }
 
+static void gWhile(unsigned n, StatementWhile *w){
+    char *lblTop = newLbl();         // inicio del bucle
+    char *lblEnd = newLbl();         // salida del bucle
+
+    out(0, "%s:\n", lblTop);         //etiqueta de inicio del bucle
+    gExpr(n, w->condition);          // evalúa condición -> RAX tiene el resultado
+    out(n, "cmp rax, 0\n");          // comprueba si es 0
+    out(n, "je %s\n", lblEnd);       // si es 0, terminar
+
+    gBlock(n, w->block);             // cuerpo del WHILE
+    out(n, "jmp %s\n", lblTop);      // vuelve al inicio
+
+    out(0, "%s:\n", lblEnd);         // etiqueta END
+    free(lblTop);
+    free(lblEnd);
+}
+
+static void gFor(unsigned n, StatementFor *f){
+    char *lblTop = newLbl();         // etiqueta de inicio del bucle
+    char *lblEnd = newLbl();         // etiqueta de salida del bucle
+
+    if (f->hasInit) gExpr(n, f->init);            // inicialización (si existe)
+    out(0, "%s:\n", lblTop);         // etiqueta TOP
+
+    if (f->hasCondition) {           // condición (si existe)
+        gExpr(n, f->condition);      // cond -> RAX
+        out(n, "cmp rax, 0\n");      // comprueba si es 0
+        out(n, "je %s\n", lblEnd);   // si es 0, salir
+    }
+
+    gBlock(n, f->block);             // cuerpo del FOR
+    if (f->hasUpdate) gExpr(n, f->update);  // actualización (si existe)
+
+    out(n, "jmp %s\n", lblTop);      // vuelve al inicio
+    out(0, "%s:\n", lblEnd);         // etiqueta END
+
+    free(lblTop);
+    free(lblEnd);
+}
 
 
-static void gWhile(unsigned n,StatementWhile*w){
-    char*Top=newLbl(),*End=newLbl();
-    out(0,"%s:\n",Top);
-    gExpr(n,w->condition); out(n,"cmp rax,0\nje %s\n",End);
-    gBlock(n,w->block);    out(n,"jmp %s\n",Top);
-    out(0,"%s:\n",End); free(Top); free(End);
-}
-static void gFor(unsigned n,StatementFor*f){
-    char*Top=newLbl(),*End=newLbl();
-    if(f->hasInit) gExpr(n,f->init);
-    out(0,"%s:\n",Top);
-    if(f->hasCondition){ gExpr(n,f->condition);
-        out(n,"cmp rax,0\nje %s\n",End);}
-    gBlock(n,f->block);
-    if(f->hasUpdate) gExpr(n,f->update);
-    out(n,"jmp %s\n",Top);
-    out(0,"%s:\n",End); free(Top); free(End);
-}
 
 /* ──────── STMTS/BLOCKS ──────── */
 static void gReturn(unsigned n,StatementReturn*r){
     if(r->hasExpression) gExpr(n,r->expression);
     out(n,"jmp %s\n",fnEndLbl);
 }
+
+static void gDeclaration(unsigned n, Statement * s){
+    if(s->variableSuffix->type==VARIABLE_SUFFIX_ASSIGNMENT){
+        gExpr(n,s->variableSuffix->expression);
+        store(n,lookupSymbol(symTable,*s->identifier, genFn)); }
+}
+
 static void gStmt(unsigned n,Statement*s){
     switch(s->type){
-        case STATEMENT_DECLARATION:
-            if(s->variableSuffix->type==VARIABLE_SUFFIX_ASSIGNMENT){
-                gExpr(n,s->variableSuffix->expression);
-                store(n,lookupSymbol(symTable,*s->identifier, genFn)); }
-            break;
+        case STATEMENT_DECLARATION: gDeclaration(n,s);          break;
         case STATEMENT_IF:      gIf(n,s->statementIf);       break;
         case STATEMENT_WHILE:   gWhile(n,s->statementWhile); break;
         case STATEMENT_FOR:     gFor(n,s->statementFor);     break;

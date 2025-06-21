@@ -199,94 +199,10 @@ static bool _analyzeDeclaration(Declaration* decl) {
     SymbolEntry* existing = lookupSymbol(_context->symbolTable, *decl->identifier, CUR_FN);
 
     if (decl->declarationSuffix->type == DECLARATION_SUFFIX_VARIABLE) {
-        // Variable declaration - no redeclaration allowed
         return _analyzeDeclarationSuffixVariable(decl, existing);
-        /*if (existing != NULL) {
-            _reportError(SEMANTIC_ERROR_REDECLARED_IDENTIFIER, *decl->identifier);
-            return false;
-        }
+    }
 
-        VariableSuffix* vs = decl->declarationSuffix->variableSuffix;
-        int isArray = (vs->type == VARIABLE_SUFFIX_ARRAY);
-        int arraySize = isArray ? *vs->arraySize : 0;
-
-        // Check array size
-        if (isArray && arraySize <= 0) {
-            _reportError(SEMANTIC_ERROR_ARRAY_SIZE, *decl->identifier);
-            return false;
-        }
-
-        // Add to symbol table
-        addVariable(_context->symbolTable, *decl->identifier, decl->dataType, isArray, arraySize);
-
-        // Check initialization if present
-        if (vs->type == VARIABLE_SUFFIX_ASSIGNMENT) {
-            DataType exprType = _analyzeExpression(vs->expression);
-            if (!_checkTypeCompatibility(decl->dataType, exprType)) {
-                _reportError(SEMANTIC_ERROR_TYPE_MISMATCH, *decl->identifier);
-                return false;
-            }
-        }*/
-    } //else {
-        // Function declaration/definition
-        /*int paramCount = 0;
-        if (decl->declarationSuffix->parameters->type == PARAMS_LIST) {
-            ParameterList* p = decl->declarationSuffix->parameters->list;
-            while (p != NULL) {
-                paramCount++;
-                p = p->next;
-            }
-        }
-
-        bool isDefinition = (decl->declarationSuffix->functionSuffix->type == SUFFIX_BLOCK);
-        bool isExtern = (decl->declarationType == DECLARATION_EXTERN);
-
-        if (existing != NULL) {
-            // Function already exists - check compatibility
-            if (existing->symbolType != SYMBOL_FUNCTION) {
-                _reportError(SEMANTIC_ERROR_REDECLARED_IDENTIFIER, *decl->identifier);
-                return false;
-            }
-
-            // Check return type and parameter count match
-            if (existing->dataType != decl->dataType || existing->paramCount != paramCount) {
-                _reportError(SEMANTIC_ERROR_TYPE_MISMATCH, *decl->identifier);
-                return false;
-            }
-
-            // If this is a definition and function was already defined (has non-negative offset)
-            if (isDefinition && existing->offset >= 0) {
-                _reportError(SEMANTIC_ERROR_REDECLARED_IDENTIFIER, *decl->identifier);
-                return false;
-            }
-
-            // Mark function as defined if this is a definition
-            if (isDefinition) {
-                existing->offset = 0;  // Mark as defined
-            }
-        } else {
-            // First time seeing this function - add to symbol table
-            addFunction(_context->symbolTable, *decl->identifier, decl->dataType, paramCount);
-            SymbolEntry* funcEntry = lookupSymbol(_context->symbolTable, *decl->identifier);
-
-            if (isDefinition) {
-                funcEntry->offset = 0;  // Mark as defined
-            } else if (isExtern) {
-                funcEntry->offset = -2;  // Mark as extern
-            } else {
-                funcEntry->offset = -1;  // Mark as declared but not defined
-            }
-        }
-
-        // Analyze function body if present
-        if (isDefinition) {
-            return _analyzeFunction(decl);
-        }*/
-        return _analyzeDeclarationSuffixFunction(decl, existing);
-
-  //  }
-
-   // return true;
+    return _analyzeDeclarationSuffixFunction(decl, existing);
 }
 
 static bool _analyzeFunction(Declaration* funcDecl) {
