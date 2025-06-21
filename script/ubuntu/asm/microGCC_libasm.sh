@@ -25,6 +25,7 @@ mkdir -p "$ASM_OUT_DIR"
 docker run \
     --rm \
     --user root \
+    --env OUTPUT_FILE_NAME="$ASM_FILE" \
     --volume "$PROJECT_ROOT":/home/ubuntu/Flex-Bison-Compiler \
     --workdir /home/ubuntu/Flex-Bison-Compiler \
     flex-bison-compiler:latest \
@@ -41,7 +42,7 @@ else
 fi
 
 # Assemble the libasm
-if nasm -f elf64 -g -F dwarf "$ASM_LIB" -o "$ASM_OUT_DIR/libasm.o"; then
+if sudo nasm -f elf64 -g -F dwarf "$ASM_LIB" -o "$ASM_OUT_DIR/libasm.o"; then
     echo "NASM compilation succeeded: libasm"
 else
     echo "NASM compilation failed: libasm"
@@ -49,7 +50,7 @@ else
 fi
 
 # Link both together
-if ld -no-pie -o "$ASM_OUT_DIR/output" "$ASM_OUT_DIR/output.o" "$ASM_OUT_DIR/libasm.o"; then
+if sudo ld -no-pie -o "$ASM_OUT_DIR/output" "$ASM_OUT_DIR/output.o" "$ASM_OUT_DIR/libasm.o"; then
     echo "Linking succeeded."
 else
     echo "Linking failed."

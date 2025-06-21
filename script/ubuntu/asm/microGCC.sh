@@ -13,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(realpath "$SCRIPT_DIR/../../..")"
 
 ACCEPT_PATH="$PROJECT_ROOT/src/test/c/accept/$TEST_NAME"
-ASM_OUT_DIR="$PROJECT_ROOT/src/test/asm/outputs"
+ASM_OUT_DIR="$PROJECT_ROOT/src/test/asm/output"
 ASM_OUTPUT_FILE="$ASM_OUT_DIR/$ASM_FILE"
 
 mkdir -p "$ASM_OUT_DIR"
@@ -22,15 +22,18 @@ mkdir -p "$ASM_OUT_DIR"
 docker run \
     --rm \
     --user root \
+    --env OUTPUT_FILE_NAME="$ASM_FILE" \
     --volume "$PROJECT_ROOT":/home/ubuntu/Flex-Bison-Compiler \
     --workdir /home/ubuntu/Flex-Bison-Compiler \
     flex-bison-compiler:latest \
-    bash -c "./script/ubuntu/start.sh ./src/test/c/accept/$TEST_NAME" > "$ASM_OUTPUT_FILE"
+    bash -c "./script/ubuntu/start.sh ./src/test/c/accept/$TEST_NAME"
+
+
 
 echo "Assembly generated: $ASM_OUTPUT_FILE"
 
 # Assemble with NASM (on host)
-if nasm -f elf64 -g -F dwarf "$ASM_OUTPUT_FILE" -o "$ASM_OUT_DIR/output.o"; then
+if sudo nasm -f elf64 -g -F dwarf "$ASM_OUTPUT_FILE" -o "$ASM_OUT_DIR/output.o"; then
     echo "NASM compilation succeeded."
 else
     echo "NASM compilation failed."
@@ -38,7 +41,7 @@ else
 fi
 
 # Link with LD (on host)
-if ld -no-pie -o "$ASM_OUT_DIR/output" "$ASM_OUT_DIR/output.o"; then
+if sudo ld -no-pie -o "$ASM_OUT_DIR/output" "$ASM_OUT_DIR/output.o"; then
     echo "Linking succeeded."
 else
     echo "Linking with LD failed."

@@ -2,6 +2,10 @@
 
 static Logger* _logger = NULL;
 
+static SymbolEntry *newEntry(const char *name, DataType ty, const char *fnName);
+static const char *dataTypeStr(DataType t);
+static const char *symbolTypeStr(SymbolType s);
+
 void initializeSymbolTableModule(){ _logger = createLogger("SymbolTable"); }
 void shutdownSymbolTableModule () { if(_logger) destroyLogger(_logger); }
 

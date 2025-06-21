@@ -8,7 +8,7 @@
 #include "../semantic-analysis/SymbolTable.h"
 #include <stdarg.h>
 #include <stdio.h>
-
+#include "GeneratorUtils.h"
 /** Initialize module's internal state. */
 void initializeGeneratorModule();
 

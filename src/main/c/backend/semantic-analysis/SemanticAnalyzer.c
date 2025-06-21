@@ -3,24 +3,30 @@
 
 static Logger* _logger = NULL;
 static SemanticContext* _context = NULL;
+/* ──────── STATIC PROTOTYPES ───────────────────────────────────────────── */
 
-static bool _analyzeProgram(Program* program);
-static bool _analyzeDeclarationList(DeclarationList* list);
-static bool _analyzeDeclaration(Declaration* decl);
-static bool _analyzeFunction(Declaration* funcDecl);
-static bool _analyzeBlock(Block* block);
-static bool _analyzeStatements(Statements* stmts);
-static bool _analyzeStatement(Statement* stmt);
-static DataType _analyzeExpression(Expression* expr);
-static bool _analyzeArguments(ListArguments* args, SymbolEntry* function);
-static void _reportError(SemanticError error, const char* details);
+static bool _analyzeProgram(Program *program);
+static bool _analyzeDeclarationList(DeclarationList *list);
+static bool _analyzeDeclaration(Declaration *decl);
+static bool _analyzeFunction(Declaration *funcDecl);
+static bool _analyzeBlock(Block *block);
+static bool _analyzeStatements(Statements *stmts);
+static bool _analyzeStatement(Statement *stmt);
+static DataType _analyzeExpression(Expression *expr);
+static bool _analyzeArguments(ListArguments *args, SymbolEntry *function);
+static boolean canAssignToLValue(Expression *leftExpression);
+static bool _analyzeDeclarationSuffixVariable(Declaration *decl, SymbolEntry *existing);
+static bool _analyzeDeclarationSuffixFunction(Declaration *decl, SymbolEntry *existing);
+static void _reportError(SemanticError error, const char *details);
 static bool _checkTypeCompatibility(DataType expected, DataType actual);
 
+
+
 #define ERROR -1
+#define CUR_FN (_context->currentFunctionName)
 
 /* PUBLIC FUNCTIONS */
 
-#define CUR_FN (_context->currentFunctionName)
 
 void initializeSemanticAnalyzerModule() {
     _logger = createLogger("SemanticAnalyzer");

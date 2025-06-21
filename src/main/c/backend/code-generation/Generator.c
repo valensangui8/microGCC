@@ -13,8 +13,6 @@ static char  *genFn = NULL;
 /* ──────── STATIC PROTOTYPES ────────────────────────────────────────────── */
 
 /* utilidades de salida / helpers generales */
-static char  *pad(unsigned n);
-static void   out(unsigned n, const char *fmt, ...);
 static char  *newLbl(void);
 static const char *getInstructionSize(SymbolEntry *e);
 static inline void load (unsigned n, const char *reg, SymbolEntry *e);
@@ -64,8 +62,7 @@ static void gDeclList  (unsigned n, DeclarationList *l);
 
 
 
-/* ──────── UTILIDADES DE SALIDA ──────── */
-static char *pad(unsigned n){
+/*static char *pad(unsigned n){
     return indentation(' ',n,4);
 }
 
@@ -75,7 +72,7 @@ static void out(unsigned n,const char *fmt,...){
     char *p=pad(n),*ef=concatenate(2,p,fmt);
     vfprintf(stdout,ef,ap); fflush(stdout);
     free(ef); free(p); va_end(ap);
-}
+}*/
 static char *newLbl(void){ 
     char*l=calloc(20,1); sprintf(l,".L%d",labelCount++); 
     return l; 
@@ -501,4 +498,5 @@ void generate(CompilerState *cs){
 
     if(root && root->type==PROGRAM_DECLARATIONS) gDeclList(1,root->declarationList);
     fileEpi();
+    shutdownGeneratorUtils();
 }
