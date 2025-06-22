@@ -1,3 +1,5 @@
+extern int print_number(int num);
+
 int main() {
     int counter = 1;
     int sum = 0;
@@ -17,6 +19,7 @@ int main() {
         factorial = factorial * counter;  
         counter = counter - 1;  /* Decrement counter */
     }
-    
+
+    print_number(factorial); // compilar con la libreria
     return 0;
 }

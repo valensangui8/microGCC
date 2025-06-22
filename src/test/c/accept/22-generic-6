@@ -42,5 +42,5 @@ int main() {
     
     int divisible_count = analyzeNumbers(start, end, divisor);
     
-    return divisible_count;
+    return divisible_count; //retorna 6
 }

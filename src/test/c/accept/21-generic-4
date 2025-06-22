@@ -1,6 +1,11 @@
 /* Function prototypes */
 
-extern int printPascalTriangle(int n);
+int printPascalTriangle(int n);
+
+int printPascalTriangle(int n){
+    int a = 0 - 10;
+    return a;
+}
 
 
 /* Function to calculate factorial of a number */
@@ -51,5 +56,5 @@ int main() {
     combination_result = calculateCombination(n, k);
 
     /* Call function to print Pascal's triangle */
-    return printPascalTriangle(n);
+    return printPascalTriangle(n) + 20; // returns 10
 }

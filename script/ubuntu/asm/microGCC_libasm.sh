@@ -34,7 +34,7 @@ docker run \
 echo "Assembly generated: $ASM_OUT_DIR/$ASM_FILE"
 
 # Assemble the test file
-if nasm -f elf64 -g -F dwarf "$ASM_OUT_DIR/$ASM_FILE" -o "$ASM_OUT_DIR/output.o"; then
+if sudo nasm -f elf64 -g -F dwarf "$ASM_OUT_DIR/$ASM_FILE" -o "$ASM_OUT_DIR/output.o"; then
     echo "NASM compilation succeeded: test"
 else
     echo "NASM compilation failed: test"
