@@ -22,5 +22,5 @@ int main() {
         is_even = 0;  /* False, temperature is odd */
     }
     
-    return 0;
+    return is_even;
 }
