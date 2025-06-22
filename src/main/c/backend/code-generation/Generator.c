@@ -78,7 +78,8 @@ static const char * getInstructionSize(SymbolEntry * e){
 static inline void load(unsigned n,const char*reg,SymbolEntry*e){
     int o = e->offset;
     char * asmInstruction = e->isArray ? "lea":(e->dataType == TYPE_CHAR ? "movzx":"mov");
-    const char * size = getInstructionSize(e);
+    const char * size = e->isArray ? "":getInstructionSize(e);
+
 
     if(e->functionName == NULL){
         out(n,"%s %s,%s[%s]\n",asmInstruction , reg, size,e->name);
