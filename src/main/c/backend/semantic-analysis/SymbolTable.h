@@ -16,6 +16,11 @@ typedef enum {
     SYMBOL_PARAMETER
 } SymbolType;
 
+typedef enum {
+    STORAGE_REGISTER,
+    STORAGE_STACK
+} StorageLocation;
+
 typedef enum{
     EXTERN_FUN,
     DEFINED_FUN,
@@ -35,7 +40,11 @@ typedef struct SymbolEntry {
             FunctionStatus functionStatus;
         };
         struct {
-            int offset;                     /* variables / parámetros */
+            StorageLocation storageLocation;
+            union {
+                int offset;
+                char* registerName;         // todo: lo podemos cambiar a un numero que indique el numero de registro (se usa un array de char* y accedemos con este n)
+            };
             int isArray;
             int arraySize;                  /* UNKNOWN_ARRAY_SIZE si no se conoce*/
         };
@@ -47,6 +56,9 @@ typedef struct SymbolEntry {
 typedef struct {
     SymbolEntry* head;
     int          currentOffset;     /* Offset actual para locales (palabras)*/
+
+    int          currentParamRegisterCount;
+    int          currentLocalRegisterCount;
 } SymbolTable;
 
 /* Init / shutdown */
@@ -61,7 +73,7 @@ void         destroySymbolTable(SymbolTable* table);
 void addVariable (SymbolTable* t,const char* name,DataType ty,
                   int isArr,int arrSz,const char* fnName);
 void addFunction (SymbolTable* t,const char* name,DataType ret,int nPar, FunctionStatus functionStatus);
-void addParameter(SymbolTable* t,const char* name,DataType ty,int off,
+void addParameter(SymbolTable* t,const char* name,DataType ty,int* off,
                   int isArr,int arrSz,const char* fnName);
 
 SymbolEntry* lookupSymbol(SymbolTable* t,const char* name,
@@ -70,6 +82,8 @@ SymbolEntry* lookupSymbol(SymbolTable* t,const char* name,
 /* Offset helpers */
 int  getCurrentOffset(SymbolTable* t);
 void resetOffset     (SymbolTable* t);
+
+void resetRegisterCounters(SymbolTable* t);
 
 
 void printSymbolTable(const SymbolTable * table);

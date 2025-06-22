@@ -8,7 +8,11 @@ static int          labelCount   = 0;
 static char        *fnEndLbl = NULL;
 static char  *genFn = NULL;
 
-
+// Arrays de todos los registros que usamos y debemos preservar en los calls
+static const char* PARAM_REGISTERS[] = {"rcx", "rdx", "rsi", "r8", "r9", "r10"};
+static const char* LOCAL_REGISTERS[] = {"r11", "r12", "r13", "r14", "r15"};
+#define MAX_PARAM_REGISTERS 6
+#define MAX_LOCAL_REGISTERS 5
 
 /* ──────── STATIC PROTOTYPES ────────────────────────────────────────────── */
 
@@ -17,6 +21,11 @@ static char  *newLbl(void);
 static const char *getInstructionSize(SymbolEntry *e);
 static inline void load (unsigned n, const char *reg, SymbolEntry *e);
 static inline void store(unsigned n, SymbolEntry *e);
+
+/*  */
+static void pushUsedRegisters(unsigned n);
+static void popUsedRegisters(unsigned n);
+static int getUsedRegistersCount(void);
 
 /* secciones y prólogos/epílogos de archivo / función */
 static void filePro(void);
@@ -75,7 +84,79 @@ static const char * getInstructionSize(SymbolEntry * e){
 }
 
 
-static inline void load(unsigned n,const char*reg,SymbolEntry*e){
+// Para contar registros usados en la función actual
+static int getUsedRegistersCount(void) {
+    int count = 0;
+    for (SymbolEntry* e = symTable->head; e; e = e->next) {
+        if (e->functionName && strcmp(e->functionName, genFn) == 0 &&
+            e->symbolType == SYMBOL_VARIABLE &&
+            e->storageLocation == STORAGE_REGISTER) {
+            count++;
+            }
+    }
+    return count;
+}
+
+
+// CAMBIO: Nueva función para obtener TODOS los registros usados
+static void pushUsedRegisters(unsigned n) {
+    // Push variables y parámetros en registros
+    for (SymbolEntry* e = symTable->head; e; e = e->next) {
+        if (e->functionName && strcmp(e->functionName, genFn) == 0 && e->symbolType == SYMBOL_PARAMETER && e->storageLocation == STORAGE_REGISTER) {
+            out(n, "push %s\n", e->registerName);
+        }
+    }
+
+    // todo: podríamos hacer (e->symbolType == SYMBOL_PARAMETER || e->symbolType == SYMBOL_VARIABLE) arriba y evitar la doble pasada
+
+    for (SymbolEntry* e = symTable->head; e; e = e->next) {
+        if (e->functionName && strcmp(e->functionName, genFn) == 0 && e->symbolType == SYMBOL_VARIABLE && e->storageLocation == STORAGE_REGISTER) {
+            out(n, "push %s\n", e->registerName);
+        }
+    }
+}
+
+// CAMBIO: Pop en orden inverso
+static void popUsedRegisters(unsigned n) {
+    // Pop variables locales primero (orden inverso)
+    for (int i = MAX_LOCAL_REGISTERS - 1; i >= 0; i--) {
+        int found = 0;
+        for (SymbolEntry* e = symTable->head; e; e = e->next) {
+            if (e->functionName && strcmp(e->functionName, genFn) == 0 &&
+                e->symbolType == SYMBOL_VARIABLE &&
+                e->storageLocation == STORAGE_REGISTER &&
+                strcmp(e->registerName, LOCAL_REGISTERS[i]) == 0) {
+                out(n, "pop %s\n", e->registerName);
+                found = 1;
+                break;
+                }
+        }
+    }
+
+    // Pop parámetros después (orden inverso)
+    for (int i = MAX_PARAM_REGISTERS - 1; i >= 0; i--) {
+        for (SymbolEntry* e = symTable->head; e; e = e->next) {
+            if (e->functionName && strcmp(e->functionName, genFn) == 0 &&
+                e->symbolType == SYMBOL_PARAMETER &&
+                e->storageLocation == STORAGE_REGISTER &&
+                strcmp(e->registerName, PARAM_REGISTERS[i]) == 0) {
+                out(n, "pop %s\n", e->registerName);
+                break;
+                }
+        }
+    }
+}
+
+
+static inline void load(unsigned n, const char* reg, SymbolEntry*e){
+    // Si está en un registro // todo: ver si estamos manejando bien los chars
+    if (e->storageLocation == STORAGE_REGISTER) {
+        if (strcmp(reg, e->registerName) != 0) {
+            out(n, "mov %s, %s\n", reg, e->registerName);
+        }
+        return;
+    }
+
     int o = e->offset;
     char * asmInstruction = e->isArray ? "lea":(e->dataType == TYPE_CHAR ? "movzx":"mov");
     const char * size = getInstructionSize(e);
@@ -88,7 +169,15 @@ static inline void load(unsigned n,const char*reg,SymbolEntry*e){
     out(n,o>=0? "%s %s, %s [rbp+%d]  ; %s\n":"%s %s, %s [rbp-%d]  ; %s\n",asmInstruction,reg,size,o>=0?o:-o,e->name);
 }
 
-static inline void store(unsigned n,SymbolEntry*e){
+static inline void store(unsigned n, SymbolEntry*e){
+    //
+    if (e->storageLocation == STORAGE_REGISTER) {
+        if (strcmp("rax", e->registerName) != 0) {
+            out(n, "mov %s, rax\n", e->registerName);
+        }
+        return;
+    }
+
     int o = e->offset;
     const char * size = getInstructionSize(e);
 
@@ -166,6 +255,17 @@ static void gArrayBase(unsigned n, SymbolEntry *e) {
     out(n, "%s rdi, [rbp%+d]\n", operation, e->offset);                               // El %+d hace que le ponga signo
 }
 
+// static void gArrayBase(unsigned n, SymbolEntry *e) {
+//     if (e->functionName == NULL) {
+//         out(n, "lea rdi, [%s]\n", e->name);
+//         return;
+//     }
+//
+//     // CAMBIO: Arrays siempre están en stack (por diseño)
+//     const char *operation = (e->symbolType == SYMBOL_PARAMETER) ? "mov" : "lea";
+//     out(n, "%s rdi, [rbp%+d]\n", operation, e->offset);
+// }
+
 static void gArrayAcc(unsigned n,const char*arr,Expression*idx){
     gExpr(n,idx); out(n,"mov rbx, rax\n");
     SymbolEntry*e=lookupSymbol(symTable,arr, genFn);
@@ -183,17 +283,86 @@ static void gArrayAcc(unsigned n,const char*arr,Expression*idx){
 
 
 /* --- llamadas a funciones--- */
-static void gFunctionCallArgs(unsigned n,ListArguments*a , int k){
-    if(k>1) gFunctionCallArgs(n,a->next,k-1);      // Llamado recursivo para pushear en orden inverso
-    gExpr(n,a->expression);                           // El resultado de la expresion esta en RAX
-    out(n,"push rax\n");                            //  En Rax esta el parametro computado
+//
+// static void gFunctionCallArgs(unsigned n,ListArguments*a , int k){
+//     if(k>1) gFunctionCallArgs(n,a->next,k-1);      // Llamado recursivo para pushear en orden inverso
+//     gExpr(n,a->expression);                           // El resultado de la expresion esta en RAX
+//     out(n,"push rax\n");                            //  En Rax esta el parametro computado
+// }
+
+// static void gFunctionCallArgs(unsigned n, ListArguments* a, int k) {
+//     // Primero evaluar todos los argumentos y guardarlos
+//     int argCount = k;
+//     int i = 0;
+//
+//     // Arrays temporales para guardar valores
+//     for (ListArguments* arg = a; arg && i < k; arg = arg->next, i++) {
+//         gExpr(n, arg->expression);
+//         out(n, "push rax  ; temp save arg %d\n", i);
+//     }
+//
+//     // Ahora asignar a registros o dejar en stack
+//     for (i = k - 1; i >= 0; i--) {
+//         if (i < MAX_PARAM_REGISTERS) {
+//             out(n, "pop %s  ; arg %d to register\n", PARAM_REGISTERS[i], i);
+//         } else {
+//             out(n, "; arg %d stays on stack\n", i);
+//         }
+//     }
+// }
+static void gFunctionCallArgs(unsigned n, ListArguments* a, int k) {
+    // Primero evaluar todos los argumentos y guardarlos
+    int argCount = k;
+    int i = 0;
+
+    // Arrays temporales para guardar valores
+    ListArguments * arg = a;
+    for (; arg && i < k && i < MAX_PARAM_REGISTERS; arg = arg->next, i++) {
+        gExpr(n, arg->expression);
+        out(n, "mov %s, rax ; arg %d to register\n", PARAM_REGISTERS[i], i);
+    }
+
+    // for (int q = k; arg && q > MAX_PARAM_REGISTERS; arg = arg->next, q-- ) {
+    //     gExpr(n, arg->expression);
+    //     out(n, "push rax  ; save arg %d\n", i);
+    // }
+
+    // Guardamos los argumentos restantes para hacer los push en orden inverso
+    int stackArgCount = k - MAX_PARAM_REGISTERS;
+    if (stackArgCount < 0 || arg == NULL) {
+        return;
+    }
+
+    ListArguments** stackArgs = malloc(sizeof(ListArguments*) * stackArgCount);
+    int j = 0;
+    for (; arg && j < stackArgCount; arg = arg->next, j++) { //CAMBIO
+        stackArgs[j] = arg;
+    }
+
+    for (int l = stackArgCount - 1; l >= 0; l--) { //CAMBIO
+        gExpr(n, stackArgs[l]->expression); //CAMBIO
+        out(n, "push rax  ; save arg %d (reversed)\n", MAX_PARAM_REGISTERS + l); //CAMBIO
+    }
+
+    free(stackArgs);
+
 }
+
+
 static void gCall(unsigned n,const char*name,ListArguments * argList){
+    pushUsedRegisters(n); // pusheamos los registros con las variables locales (todo: y parametros?)
+
     int c=0;
     for(ListArguments * t = argList ; t ; t=t->next) ++c;  // Cuenta argumentos
-    if(c) gFunctionCallArgs(n,argList,c);             // Apila los argumentos
-    out(n,"call %s\n",name);                           // llamado de funcion --> Resultado en RAX
-    if(c) out(n,"add rsp,%d\n",c*8);                   // limpia la pila
+    if(c) gFunctionCallArgs(n,argList,c);             // Apila los argumentos    // llamado de funcion --> Resultado en RAX
+
+    out(n,"call %s\n",name);
+
+    // llamado de funcion --> Resultado en RAX
+    int stackParams = (c > MAX_PARAM_REGISTERS) ? c - MAX_PARAM_REGISTERS : 0;
+    if(stackParams > 0) out(n, "add rsp, %d\n", stackParams * 8);                  // limpia la pila
+
+    popUsedRegisters(n); // popeamos los registros con las variables locales (todo: y parametros?)
 }
 
 
@@ -431,17 +600,33 @@ static void gFunction(unsigned n, Declaration* d) {
     out(n, "push rbp\n");
     out(n, "mov rbp, rsp\n");
 
+    // Mover parámetros del stack a registros
+    // if (d->declarationSuffix->parameters->type == PARAMS_LIST) {
+    //     ParameterList* p = d->declarationSuffix->parameters->list;
+    //     int paramOffset = 16;
+    //     int paramRegIndex = 0;
+    //
+    //     while (p != NULL) {
+    //         SymbolEntry* paramEntry = lookupSymbol(symTable, *p->parameter->identifier, genFn);
+    //         if (paramEntry && paramEntry->storageLocation == STORAGE_REGISTER) {
+    //             // Cargar parámetro del stack al registro asignado
+    //             out(n, "mov %s, [rbp+%d]\n", paramEntry->registerName, paramOffset);
+    //         }
+    //         paramOffset += 8;
+    //         p = p->next;
+    //     }
+    // }
 
     int minOffset = 0;
 
     for (SymbolEntry* e = symTable->head; e; e = e->next) {
         if (e->functionName && strcmp(e->functionName, genFn) == 0 &&
-            e->symbolType == SYMBOL_VARIABLE && e->offset < minOffset) {
+            e->symbolType == SYMBOL_VARIABLE && e->storageLocation == STORAGE_STACK &&  e->offset < minOffset) {
             minOffset = e->offset;
         }
     }
 
-    int localBytes = -minOffset ;  
+    int localBytes = -minOffset;
     if (localBytes > 0) {
         int aligned = (localBytes + 15) & ~15;
         out(n, "sub rsp, %d\n", aligned);

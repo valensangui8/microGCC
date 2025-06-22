@@ -228,8 +228,9 @@ static bool _analyzeFunction(Declaration* funcDecl) {
     _context->currentFunctionName = *funcDecl->identifier;
     _context->functionHasReturn = false;
 
-    // Reset offset for new function
+    // Reset offset and register counters for new function
     resetOffset(_context->symbolTable);
+    resetRegisterCounters(_context->symbolTable);
 
     // Add parameters to symbol table
     if (funcDecl->declarationSuffix->parameters->type == PARAMS_LIST) {
@@ -246,11 +247,11 @@ static bool _analyzeFunction(Declaration* funcDecl) {
             }
 
             if(param->array->type == PARAMETER_ARRAY_BRACKETS){
-                addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 1 , UNKNOWN_ARRAY_SIZE, CUR_FN);
+                addParameter(_context->symbolTable, *param->identifier, param->type, &paramOffset, 1 , UNKNOWN_ARRAY_SIZE, CUR_FN);
             }else{
-                addParameter(_context->symbolTable, *param->identifier, param->type, paramOffset, 0 ,0, CUR_FN);
+                addParameter(_context->symbolTable, *param->identifier, param->type, &paramOffset, 0 ,0, CUR_FN);
             }
-            paramOffset += 8; // Todos los parametros van a ser de 8 bytes
+            // paramOffset += 8; // Todos los parametros van a ser de 8 bytes // todo: ojo que puede estar usando registros. ¿Subir al add parameter?
             p = p->next;
         }
     }
