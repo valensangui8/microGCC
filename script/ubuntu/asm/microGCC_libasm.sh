@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(realpath "$SCRIPT_DIR/../../..")"
 
 ACCEPT_DIR="$PROJECT_ROOT/src/test/c/accept"
-ASM_OUT_DIR="$PROJECT_ROOT/src/test/asm/outputs"
+ASM_OUT_DIR="$PROJECT_ROOT/src/test/asm/output"
 ASM_LIB="$PROJECT_ROOT/src/test/asm/lib/libasm.asm"
 
 # Ensure outputs directory exists
@@ -29,7 +29,7 @@ docker run \
     --volume "$PROJECT_ROOT":/home/ubuntu/Flex-Bison-Compiler \
     --workdir /home/ubuntu/Flex-Bison-Compiler \
     flex-bison-compiler:latest \
-    bash -c "./script/ubuntu/start.sh ./src/test/c/accept/$TEST_NAME" > "$ASM_OUT_DIR/$ASM_FILE"
+    bash -c "./script/ubuntu/start.sh ./src/test/c/accept/$TEST_NAME"
 
 echo "Assembly generated: $ASM_OUT_DIR/$ASM_FILE"
 

@@ -1,0 +1,11 @@
+extern int print_str(char str[], int size);
+extern int init_array(char arr[], int size);
+
+
+int main(){
+    int arr[50];
+    init_array(arr, 49);
+    print_str(arr, 49);
+
+    return 0;
+}

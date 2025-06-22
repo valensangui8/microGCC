@@ -25,6 +25,7 @@
 BisonParser.c
 BisonParser.h
 FlexScanner.c
-/src/test/asm/outputs/
+/src/test/asm/output/*
+/src/test/asm/output
 /output/*
 /tmp/
