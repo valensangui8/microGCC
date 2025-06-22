@@ -21,7 +21,7 @@ static void initOutputFileOnce(void) {
     const char *dir = "/home/ubuntu/Flex-Bison-Compiler/src/test/asm/output";
 
     if (mkdir(dir, 0755) == -1 && errno != EEXIST) {
-        LogWarning(outLogger, "mkdir(%s) failed: %s", dir, strerror(errno));
+        logWarning(outLogger, "mkdir(%s) failed: %s", dir, strerror(errno));
         return;
     }
 
@@ -29,13 +29,13 @@ static void initOutputFileOnce(void) {
     size_t pathLen = strlen(dir) + 1 + strlen(fileName) + 1;
     char *fullPath = malloc(pathLen);
     if (!fullPath) {
-        LogWarning(outLogger, "malloc(%zu) failed", pathLen);
+        logWarning(outLogger, "malloc(%zu) failed", pathLen);
         return;
     }
     snprintf(fullPath, pathLen, "%s/%s", dir, fileName);
 
     asmFile = fopen(fullPath, "w");
-    if (!asmFile) LogWarning(outLogger, "fopen(%s) failed: %s", fullPath, strerror(errno));
+    if (!asmFile) logWarning(outLogger, "fopen(%s) failed: %s", fullPath, strerror(errno));
     free(fullPath);
 }
 
@@ -58,7 +58,7 @@ void out(unsigned n, const char *fmt, ...)
         vfprintf(asmFile, ef, ap_copy);
 
     if (!asmFile)
-        LogWarning(outLogger, "ASM file not available; output lost");
+        logWarning(outLogger, "ASM file not available; output lost");
 
     fflush(asmFile);
     free(ef);

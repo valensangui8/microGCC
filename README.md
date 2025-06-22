@@ -72,7 +72,7 @@ En `script/ubuntu/asm/` encontrarás dos lanzadores:
 ```
 
 * **`<nombre-test>`** es el nombre del archivo de prueba ubicado en `src/test/c/accept/` **sin extensión**.
-  Ejemplo: para `src/test/c/accept/02-extern-declaration` se invoca:
+  Ejemplo: para `src/test/c/accept/01-functions` se invoca:
 
 ```bash
 ./script/ubuntu/asm/microGCC.sh 01-functions
