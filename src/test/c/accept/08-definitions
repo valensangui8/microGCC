@@ -1,4 +1,21 @@
-int fun1(void);
-int fun2(int integer);
-int global_integer = 5;
-char global_char = 'c';
+char fun1(char a){
+    return a;
+}
+int fun2(int integer){
+    return integer;
+}
+
+int main(){
+    int integer = 5;
+    char global_char = 'c';
+
+    char c = fun1(global_char);
+    int d = fun2(integer);
+
+    int e = 3;
+    int resultado = e < integer;
+    return resultado;
+}
+
+
+

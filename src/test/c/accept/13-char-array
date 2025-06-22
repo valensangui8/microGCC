@@ -12,4 +12,5 @@ int main(){
     string[4] = '\0';
 
     func(string);
+    return 0;
 }

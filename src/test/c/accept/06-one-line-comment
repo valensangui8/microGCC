@@ -1,4 +1,5 @@
 //one line comment
 int main(){ //more comments
     //int a; // this is commented twice
+    return 0;
 }

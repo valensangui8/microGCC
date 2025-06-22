@@ -1,22 +1,7 @@
 /* Function prototypes */
-int calculateFactorial(int number);
-int calculateCombination(int n, int k);
-int pascalTriangle(int rows);
+
 extern int printPascalTriangle(int n);
 
-int main() {
-    int n = 7;
-    int factorial_result;
-    
-    factorial_result = calculateFactorial(n);
-    
-    int k = 3;
-    int combination_result;
-    combination_result = calculateCombination(n, k);
-    
-    /* Call function to print Pascal's triangle */
-    return printPascalTriangle(n);
-}
 
 /* Function to calculate factorial of a number */
 int calculateFactorial(int number) {
@@ -31,11 +16,11 @@ int calculateFactorial(int number) {
 }
 
 /* Function to calculate combinations (n choose k) */
-/*
+
 int calculateCombination(int n, int k) {
     return calculateFactorial(n) / (calculateFactorial(k) * calculateFactorial(n - k));
 }
-*/
+
 
 
 int pascalTriangle(int rows) {
@@ -52,4 +37,19 @@ int pascalTriangle(int rows) {
     
 
     return 0;
+}
+
+
+int main() {
+    int n = 7;
+    int factorial_result;
+
+    factorial_result = calculateFactorial(n);
+
+    int k = 3;
+    int combination_result;
+    combination_result = calculateCombination(n, k);
+
+    /* Call function to print Pascal's triangle */
+    return printPascalTriangle(n);
 }
