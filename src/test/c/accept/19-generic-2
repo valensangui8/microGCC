@@ -21,5 +21,5 @@ int main() {
     }
 
     print_number(factorial); // compilar con la libreria
-    return 0;
+    return factorial;
 }
