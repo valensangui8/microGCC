@@ -62,17 +62,6 @@ static void gDeclList  (unsigned n, DeclarationList *l);
 
 
 
-/*static char *pad(unsigned n){
-    return indentation(' ',n,4);
-}
-
-
-static void out(unsigned n,const char *fmt,...){
-    va_list ap; va_start(ap,fmt);
-    char *p=pad(n),*ef=concatenate(2,p,fmt);
-    vfprintf(stdout,ef,ap); fflush(stdout);
-    free(ef); free(p); va_end(ap);
-}*/
 static char *newLbl(void){ 
     char*l=calloc(20,1); sprintf(l,".L%d",labelCount++); 
     return l; 
@@ -96,8 +85,7 @@ static inline void load(unsigned n,const char*reg,SymbolEntry*e){
         return;
     }
 
-    out(n,o>=0? "%s %s,[rbp+%d]  ; %s\n":"%s %s,[rbp-%d]  ; %s\n",
-        asmInstruction,reg,o>=0?o:-o,e->name);
+    out(n,o>=0? "%s %s, %s [rbp+%d]  ; %s\n":"%s %s, %s [rbp-%d]  ; %s\n",asmInstruction,reg,size,o>=0?o:-o,e->name);
 }
 
 static inline void store(unsigned n,SymbolEntry*e){
