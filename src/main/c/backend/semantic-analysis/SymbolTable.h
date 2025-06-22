@@ -43,7 +43,7 @@ typedef struct SymbolEntry {
             StorageLocation storageLocation;
             union {
                 int offset;
-                char* registerName;         // todo: lo podemos cambiar a un numero que indique el numero de registro (se usa un array de char* y accedemos con este n)
+                char* registerName;
             };
             int isArray;
             int arraySize;                  /* UNKNOWN_ARRAY_SIZE si no se conoce*/

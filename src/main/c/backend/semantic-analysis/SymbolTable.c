@@ -3,10 +3,10 @@
 static Logger* _logger = NULL;
 
 // Arrays de registros disponibles
-static const char* PARAM_REGISTERS[] = {"rcx", "rdx", "rsi", "r8", "r9", "r10"};
-static const char* LOCAL_REGISTERS[] = {"r11", "r12", "r13", "r14", "r15"};
-#define MAX_PARAM_REGISTERS 6
-#define MAX_LOCAL_REGISTERS 5
+static const char* PARAM_REGISTERS[] = {"r8", "r9", "r10", "r11"};
+static const char* LOCAL_REGISTERS[] = {"r12", "r13", "r14", "r15"};
+#define MAX_PARAM_REGISTERS 4
+#define MAX_LOCAL_REGISTERS 4
 
 static SymbolEntry *newEntry(const char *name, DataType ty, const char *fnName);
 static const char *dataTypeStr(DataType t);

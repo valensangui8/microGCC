@@ -9,10 +9,10 @@ static char        *fnEndLbl = NULL;
 static char  *genFn = NULL;
 
 // Arrays de todos los registros que usamos y debemos preservar en los calls
-static const char* PARAM_REGISTERS[] = {"rcx", "rdx", "rsi", "r8", "r9", "r10"};
-static const char* LOCAL_REGISTERS[] = {"r11", "r12", "r13", "r14", "r15"};
-#define MAX_PARAM_REGISTERS 6
-#define MAX_LOCAL_REGISTERS 5
+static const char* PARAM_REGISTERS[] = {"r8", "r9", "r10", "r11"};
+static const char* LOCAL_REGISTERS[] = {"r12", "r13", "r14", "r15"};
+#define MAX_PARAM_REGISTERS 4
+#define MAX_LOCAL_REGISTERS 4
 
 /* ──────── STATIC PROTOTYPES ────────────────────────────────────────────── */
 
