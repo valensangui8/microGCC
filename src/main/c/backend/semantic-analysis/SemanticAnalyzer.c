@@ -571,6 +571,10 @@ static void _reportError(SemanticError error, const char* details) {
 }
 
 static bool _checkTypeCompatibility(DataType expected, DataType actual) {
-    //Somos estrictos con los tipos de datos.
-    return expected == actual;
+    if (expected == actual) return true;
+
+    // char puede ser promovido a int implícitamente
+    if (expected == TYPE_INT && actual == TYPE_CHAR) return true;
+
+    return false;
 }

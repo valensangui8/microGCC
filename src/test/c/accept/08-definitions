@@ -13,7 +13,7 @@ int main(){
     int d = fun2(integer);
 
     int e = 3;
-    int resultado = e < integer;
+    int resultado = e;
     return resultado;
 }
 

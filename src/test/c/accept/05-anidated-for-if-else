@@ -3,5 +3,5 @@ int main(){
     for(i=0;i<3;i=i+1){
         if(i%2==0){ i=i+1 ; }else{ i = i+ 10 ;}
     }
-    return 0 ;
+    return i;
 }
