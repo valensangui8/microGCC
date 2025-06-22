@@ -1,0 +1,9 @@
+
+int main() {
+    char letter = 'A';
+    int number = 10;
+
+    char c = letter + number;
+    
+    return 0;
+}

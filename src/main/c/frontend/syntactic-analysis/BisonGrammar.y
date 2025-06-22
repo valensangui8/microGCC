@@ -42,6 +42,7 @@
 	StatementReturn* statementReturn;
 	StatementWhile* statementWhile;
 	VariableSuffix* variableSuffix;
+	VariableSuffixPrima* variableSuffixPrima;
 }
 
 
@@ -124,6 +125,8 @@
 %type <statementWhile> StatementWhile
 %type <dataType> Type
 %type <variableSuffix> VariableSuffix
+%type <variableSuffixPrima> VariableSuffixPrima
+
 
 
 %%
@@ -140,7 +143,7 @@ Declaration: Type Identifier DeclarationSuffix                      { $$ = Regul
 	| EXTERN Type Identifier DeclarationSuffix                      { $$ = ExternDeclarationSemanticAction($2, $3, $4); }
 	;
 
-DeclarationSuffix: VariableSuffix SEMICOLON                            { $$ = VariableDeclarationSuffixSemanticAction($1); }
+DeclarationSuffix: VariableSuffixPrima SEMICOLON                        { $$ = VariableDeclarationSuffixSemanticAction($1); }
 	| OPEN_PARENTHESIS Parameters CLOSE_PARENTHESIS FunctionSuffix      { $$ = FunctionDeclarationSuffixSemanticAction($2, $4); }
 	;
 
@@ -152,6 +155,11 @@ VariableSuffix: %empty                                                 { $$ = Em
 	| ASSIGN Expression                                                 { $$ = AssignmentVariableSuffixSemanticAction($2); }
 	| OPEN_BRACKET INTEGER CLOSE_BRACKET                               { $$ = ArrayVariableSuffixSemanticAction($2); }
 	;
+
+VariableSuffixPrima: %empty                                            { $$ = EmptyVariableSuffixSemanticAction(); }
+	| OPEN_BRACKET INTEGER CLOSE_BRACKET                               { $$ = ArrayVariableSuffixSemanticAction($2); }
+	;
+
 
 Parameters: VOID                                                       { $$ = VoidParametersSemanticAction(); }
 	| ParameterList                                                   { $$ = ListParametersSemanticAction($1); }
@@ -277,6 +285,7 @@ Arguments: ListArguments                                            { $$ = $1; }
 ListArguments: Expression                                             { $$ = SingleListArgumentsSemanticAction($1); }
 	| ListArguments COMMA Expression                                  { $$ = AppendListArgumentsSemanticAction($1, $3); }
 	;
+
 
 Constant: ConstantInteger                                             { $$ = IntegerConstantSemanticAction($1); }
 	| ConstantCharacter                                                { $$ = CharacterConstantSemanticAction($1); }

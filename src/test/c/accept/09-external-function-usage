@@ -1,0 +1,7 @@
+
+extern int sum(int n1,int n2);
+
+int main() {
+    return sum(3,5);
+}
+

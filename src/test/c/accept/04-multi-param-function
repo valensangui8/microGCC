@@ -1,0 +1,9 @@
+int sum(int x, int y, char c, char a, int b){
+    return x + y + c + a + b;
+}
+
+int main(){
+
+return sum(1,2,3,4,6);
+
+}

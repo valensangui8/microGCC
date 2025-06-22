@@ -1,0 +1,13 @@
+/*
+	A multiline comment.
+*/
+
+int main(){
+    /*
+    * i dont know how
+    * to solve
+    * this problem
+    * properly
+    */
+    return 0;
+}

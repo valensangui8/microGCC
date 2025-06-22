@@ -114,6 +114,7 @@ typedef struct StatementIf StatementIf;
 typedef struct StatementReturn StatementReturn;
 typedef struct StatementWhile StatementWhile;
 typedef struct VariableSuffix VariableSuffix;
+typedef struct VariableSuffix VariableSuffixPrima;
 typedef struct ParameterArray ParameterArray;
 
 typedef int ConstantInteger;

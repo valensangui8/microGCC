@@ -1,0 +1,37 @@
+int main() {
+
+    int a = 10;
+    int b = 20;
+    int c = 10;
+    
+    int result1;
+    int result2;
+    int result3;
+    int result4;
+    int result5;
+    int result6;
+    
+    result1 = (a == c);  
+    result2 = (a != b); 
+    result3 = (a < b);  
+    result4 = (a > b);   
+    result5 = (a <= c);
+    result6 = (b >= a); 
+    
+    int x = 5;
+    int y = 8;
+    int z = 12;
+
+    int complex_result1;
+    int complex_result2;
+    int complex_result3;
+    int complex_result4;
+    
+    complex_result1 = (x + y > z);
+    complex_result2 = (x * y >= z + x);
+    complex_result3 = (z / x == y - x);
+    
+    complex_result4 = (x * y != z * x);
+    
+    return complex_result4;
+}

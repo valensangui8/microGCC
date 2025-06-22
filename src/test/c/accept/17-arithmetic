@@ -1,0 +1,8 @@
+extern int print_number(int num);
+
+int main(){
+    int a = (1+((2-2)/1)*(4%2)) * (0-10) ;
+
+    print_number(a);
+    return a;
+}
