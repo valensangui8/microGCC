@@ -93,12 +93,11 @@ static inline void store(unsigned n,SymbolEntry*e){
     const char * size = getInstructionSize(e);
 
     if(e->functionName == NULL){
-        out(n,"mov %s [%s], rax\n",size, e->name);
+        out(n,"mov [%s], rax\n", e->name);
         return;
     }
 
-    out(n,o>=0? "mov %s [rbp+%d],rax  ; %s\n":"mov %s [rbp-%d],rax  ; %s\n",size,
-        o>=0?o:-o,e->name);
+    out(n,o>=0? "mov [rbp+%d],rax  ; %s\n":"mov [rbp-%d],rax  ; %s\n",o>=0?o:-o,e->name);
 }
 
 static void filePro(void){
